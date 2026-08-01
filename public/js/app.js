@@ -10,51 +10,64 @@
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ── DOM References ── */
-  const nodeLayerEl    = document.getElementById('node-layer');
-  const svgLayerEl     = document.getElementById('svg-layer');
+  const nodeLayerEl = document.getElementById('node-layer');
+  const svgLayerEl = document.getElementById('svg-layer');
   const packetCanvasEl = document.getElementById('packet-canvas');
-  const wrapperEl      = document.getElementById('canvas-wrapper');
+  const wrapperEl = document.getElementById('canvas-wrapper');
 
   const inspectorPanelEl = document.getElementById('inspector-panel');
-  const inspectorBodyEl  = document.getElementById('inspector-body');
+  const inspectorBodyEl = document.getElementById('inspector-body');
   const inspectorTitleEl = document.getElementById('inspector-title');
 
-  const timelineTrackEl  = document.getElementById('timeline-track');
+  const timelineTrackEl = document.getElementById('timeline-track');
   const timelineCursorEl = document.getElementById('timeline-cursor');
-  const timelineModeEl   = document.getElementById('timeline-mode-badge');
+  const timelineModeEl = document.getElementById('timeline-mode-badge');
 
-  const explorerListEl   = document.getElementById('explorer-list');
-  const consoleLinesEl   = document.getElementById('console-lines');
-  const consoleCountEl   = document.getElementById('console-count');
-  const wsIndicatorEl    = document.getElementById('ws-indicator');
-  const wsLabelEl        = document.getElementById('ws-label');
+  const explorerListEl = document.getElementById('explorer-list');
+  const consoleLinesEl = document.getElementById('console-lines');
+  const consoleCountEl = document.getElementById('console-count');
+  const wsIndicatorEl = document.getElementById('ws-indicator');
+  const wsLabelEl = document.getElementById('ws-label');
 
   const onboardingScreenEl = document.getElementById('onboarding-screen');
-  const appWorkspaceEl     = document.getElementById('app-workspace');
-  const obStatusBarEl      = document.getElementById('ob-status-bar');
-  const obStatusTextEl     = document.getElementById('ob-status-text');
+  const appWorkspaceEl = document.getElementById('app-workspace');
+  const obStatusBarEl = document.getElementById('ob-status-bar');
+  const obStatusTextEl = document.getElementById('ob-status-text');
+  const btnCloseOnboarding = document.getElementById('btn-close-onboarding');
 
   let hasActivatedWorkspace = false;
+  let onboardingDismissed = false;
+
   function revealWorkspace() {
-    if (hasActivatedWorkspace) return;
-    hasActivatedWorkspace = true;
     if (onboardingScreenEl) onboardingScreenEl.classList.add('hiding');
     if (appWorkspaceEl) {
       appWorkspaceEl.classList.add('visible');
       appWorkspaceEl.setAttribute('aria-hidden', 'false');
     }
+    hasActivatedWorkspace = true;
+  }
+
+  function dismissOnboarding() {
+    if (onboardingDismissed) return;
+    onboardingDismissed = true;
+    if (onboardingScreenEl) onboardingScreenEl.classList.add('hiding');
+    if (appWorkspaceEl) {
+      appWorkspaceEl.classList.add('visible');
+      appWorkspaceEl.setAttribute('aria-hidden', 'false');
+    }
+    hasActivatedWorkspace = true;
   }
 
   /* Metric elements */
   const mTraces = document.getElementById('m-traces');
-  const mAvg    = document.getElementById('m-avg');
+  const mAvg = document.getElementById('m-avg');
   const mActive = document.getElementById('m-active');
-  const mMem    = document.getElementById('m-mem');
-  const mCpu    = document.getElementById('m-cpu');
+  const mMem = document.getElementById('m-mem');
+  const mCpu = document.getElementById('m-cpu');
 
   /* ── Canvas transform state ── */
-  let panX      = 80;
-  let panY      = 80;
+  let panX = 80;
+  let panY = 80;
   let zoomScale = 0.85;
   let isPanning = false;
   let panStartX = 0;
@@ -66,11 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ══════════════════════════════════════════
      Initialize Engine Modules
   ══════════════════════════════════════════ */
-  const nodeManager    = new NodeManager(nodeLayerEl);
-  const svgEdges       = new SVGEdgeRenderer(svgLayerEl);
+  const nodeManager = new NodeManager(nodeLayerEl);
+  const svgEdges = new SVGEdgeRenderer(svgLayerEl);
   const canvasRenderer = new CanvasRenderer(packetCanvasEl, nodeManager, svgEdges);
-  const inspector      = new Inspector(inspectorPanelEl, inspectorBodyEl, inspectorTitleEl);
-  const timeline       = new Timeline(timelineTrackEl, timelineCursorEl, timelineModeEl);
+  const inspector = new Inspector(inspectorPanelEl, inspectorBodyEl, inspectorTitleEl);
+  const timeline = new Timeline(timelineTrackEl, timelineCursorEl, timelineModeEl);
 
   const DEFAULT_PIPELINE = [
     'Client', 'Express', 'Router', 'Middleware',
@@ -95,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const _origComplete = engine.handleTraceComplete.bind(engine);
   engine.handleTraceComplete = function (data) {
     _origComplete(data);
-    revealWorkspace();
     updateStats(data.stats || {});
     const traceId = (data.trace?.id || data.trace?.traceId);
     const session = engine.completedSessions.find(s => s.traceId === traceId);
@@ -105,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const _origStart = engine.handleTraceStart.bind(engine);
   engine.handleTraceStart = function (data) {
     _origStart(data);
-    revealWorkspace();
     updateStats(data.stats || {});
     const traceId = data.trace?.traceId;
     if (traceId) markExplorerActive(traceId, data.trace);
@@ -115,9 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
   engine.handleSnapshot = function (data) {
     _origSnapshot(data);
     updateStats(data.stats || {});
-    if (engine.completedSessions.length > 0 || (data.activeTraces && data.activeTraces.length > 0)) {
-      revealWorkspace();
-    }
     engine.completedSessions.forEach(s => addToExplorer(s));
   };
 
@@ -146,8 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   document.getElementById('btn-start-demo-trace')?.addEventListener('click', () => {
-    revealWorkspace();
+    dismissOnboarding();
     engine.startInteractiveDemoTrace();
+  });
+
+  btnCloseOnboarding?.addEventListener('click', () => {
+    dismissOnboarding();
   });
 
   document.getElementById('btn-close-inspector')?.addEventListener('click', () => {
@@ -203,9 +215,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPlay = document.getElementById('btn-play');
 
   document.getElementById('btn-first')?.addEventListener('click', () => engine.replayReset());
-  document.getElementById('btn-prev')?.addEventListener('click',  () => engine.replayStepBackward());
-  document.getElementById('btn-next')?.addEventListener('click',  () => engine.replayStepForward());
-  document.getElementById('btn-last')?.addEventListener('click',  () => engine.replayJumpToEnd());
+  document.getElementById('btn-prev')?.addEventListener('click', () => engine.replayStepBackward());
+  document.getElementById('btn-next')?.addEventListener('click', () => engine.replayStepForward());
+  document.getElementById('btn-last')?.addEventListener('click', () => engine.replayJumpToEnd());
 
   btnPlay?.addEventListener('click', () => {
     if (engine.replayPlaying) {
@@ -224,31 +236,31 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT') return;
     switch (e.key) {
-      case ' ':       e.preventDefault(); btnPlay?.click(); break;
-      case 'ArrowLeft':  engine.replayStepBackward();      break;
-      case 'ArrowRight': engine.replayStepForward();       break;
-      case 'Home':       engine.replayReset();             break;
-      case 'End':        engine.replayJumpToEnd();         break;
-      case 'Escape':     engine.enterLiveMode();           break;
-      case 'f': case 'F': resetView();                     break;
-      case '+': case '=': zoomIn();                        break;
-      case '-': zoomOut();                                  break;
+      case ' ': e.preventDefault(); btnPlay?.click(); break;
+      case 'ArrowLeft': engine.replayStepBackward(); break;
+      case 'ArrowRight': engine.replayStepForward(); break;
+      case 'Home': engine.replayReset(); break;
+      case 'End': engine.replayJumpToEnd(); break;
+      case 'Escape': engine.enterLiveMode(); break;
+      case 'f': case 'F': resetView(); break;
+      case '+': case '=': zoomIn(); break;
+      case '-': zoomOut(); break;
     }
   });
 
   /* ══════════════════════════════════════════
      Canvas Pan + Zoom
   ══════════════════════════════════════════ */
-  document.getElementById('btn-zoom-in')?.addEventListener('click',  zoomIn);
+  document.getElementById('btn-zoom-in')?.addEventListener('click', zoomIn);
   document.getElementById('btn-zoom-out')?.addEventListener('click', zoomOut);
-  document.getElementById('btn-fit')?.addEventListener('click',      resetView);
+  document.getElementById('btn-fit')?.addEventListener('click', resetView);
 
   wrapperEl?.addEventListener('mousedown', (e) => {
     if (e.target.closest('.node-card')) return;
     if (e.button !== 0) return;
-    isPanning  = true;
-    panStartX  = e.clientX - panX;
-    panStartY  = e.clientY - panY;
+    isPanning = true;
+    panStartX = e.clientX - panX;
+    panStartY = e.clientY - panY;
     wrapperEl.style.cursor = 'grabbing';
   });
 
@@ -271,8 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTransform();
   }, { passive: false });
 
-  function zoomIn()  { zoomScale = Math.min(2.5, zoomScale * 1.2);  applyTransform(); }
-  function zoomOut() { zoomScale = Math.max(0.2, zoomScale * 0.8);  applyTransform(); }
+  function zoomIn() { zoomScale = Math.min(2.5, zoomScale * 1.2); applyTransform(); }
+  function zoomOut() { zoomScale = Math.max(0.2, zoomScale * 0.8); applyTransform(); }
   function resetView() { panX = 80; panY = 80; zoomScale = 0.85; applyTransform(); }
 
   function applyTransform() {
@@ -296,11 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       item = document.createElement('div');
       item.className = 'explorer-item active-trace';
-      item.id        = `exp-${traceId}`;
+      item.id = `exp-${traceId}`;
       item.dataset.traceId = traceId;
 
       const method = (traceData?.method || 'GET').toUpperCase();
-      const route  = traceData?.route || traceData?.url || '/';
+      const route = traceData?.route || traceData?.url || '/';
       item.innerHTML = `
         <div class="exp-left">
           <span class="exp-method method-${method}">${method}</span>
@@ -334,8 +346,8 @@ document.addEventListener('DOMContentLoaded', () => {
     item.dataset.status = session.statusCode || session.completedData?.status || 200;
     item.dataset.latency = session.completedData?.timing?.total || 0;
 
-    const status  = session.statusCode || session.completedData?.status || '—';
-    const timing  = session.completedData?.timing?.total || 0;
+    const status = session.statusCode || session.completedData?.status || '—';
+    const timing = session.completedData?.timing?.total || 0;
     const isError = session.status === 'error';
 
     item.innerHTML = `
@@ -396,16 +408,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateStats(stats) {
     if (!stats) return;
-    if (mTraces) mTraces.textContent = stats.completedRequests  || engine.completedSessions.length || 0;
-    if (mAvg)    mAvg.textContent    = `${stats.avgResponseTime || 0}ms`;
-    if (mActive) mActive.textContent = stats.activeRequests     || engine.sessions.size || 0;
-    if (mMem)    mMem.textContent    = `${stats.memoryMb        || 0}MB`;
-    if (mCpu)    mCpu.textContent    = `${stats.cpuPercent      || 0}%`;
+    if (mTraces) mTraces.textContent = stats.completedRequests || engine.completedSessions.length || 0;
+    if (mAvg) mAvg.textContent = `${stats.avgResponseTime || 0}ms`;
+    if (mActive) mActive.textContent = stats.activeRequests || engine.sessions.size || 0;
+    if (mMem) mMem.textContent = `${stats.memoryMb || 0}MB`;
+    if (mCpu) mCpu.textContent = `${stats.cpuPercent || 0}%`;
   }
 
   function appendLog(level, message) {
     const line = document.createElement('div');
-    line.className  = `console-line level-${level}`;
+    line.className = `console-line level-${level}`;
     line.textContent = `[${new Date().toLocaleTimeString('en-GB', { hour12: false })}] ${message}`;
     consoleLinesEl.appendChild(line);
     consoleLinesEl.scrollTop = consoleLinesEl.scrollHeight;
@@ -423,14 +435,14 @@ document.addEventListener('DOMContentLoaded', () => {
     consoleCountEl.textContent = '0 events';
   });
 
-  let socket    = null;
+  let socket = null;
   let reconnect = null;
 
   function connectWS() {
     if (reconnect) clearTimeout(reconnect);
 
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url       = `${protocol}//${location.host}`;
+    const url = `${protocol}//${location.host}`;
 
     try {
       socket = new WebSocket(url);
@@ -441,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.onopen = () => {
       wsIndicatorEl.className = 'ws-indicator connected';
-      wsLabelEl.textContent   = 'LIVE';
+      wsLabelEl.textContent = 'LIVE';
       if (obStatusBarEl) obStatusBarEl.className = 'ob-status-bar connected';
       if (obStatusTextEl) obStatusTextEl.textContent = 'Listening for backend requests…';
       appendLog('info', '[SuriLens] WebSocket connected — watching backend execution in real time');
@@ -449,14 +461,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.onclose = () => {
       wsIndicatorEl.className = 'ws-indicator disconnected';
-      wsLabelEl.textContent   = 'OFFLINE';
+      wsLabelEl.textContent = 'OFFLINE';
       if (obStatusBarEl) obStatusBarEl.className = 'ob-status-bar';
       if (obStatusTextEl) obStatusTextEl.textContent = 'Disconnected — retrying…';
       appendLog('warn', '[SuriLens] WebSocket disconnected — retrying…');
       scheduleReconnect();
     };
 
-    socket.onerror = () => {};
+    socket.onerror = () => { };
 
     socket.onmessage = (evt) => {
       try {

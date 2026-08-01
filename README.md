@@ -2,7 +2,7 @@
 
 > **Universal Real-Time Backend Observability & Visual Execution Replay Platform for Node.js**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https.mit-license.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
 [![Universal Adapters](https://img.shields.io/badge/adapters-Express%20%7C%20Fastify%20%7C%20Koa%20%7C%20NestJS%20%7C%20Hono-6366f1.svg)](#framework-adapters)
 [![W3C Distributed Tracing](https://img.shields.io/badge/tracing-W3C%20Trace Context-10b981.svg)](#distributed-tracing)

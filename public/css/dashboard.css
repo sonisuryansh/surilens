@@ -53,6 +53,7 @@ input, select { font-family: inherit; }
 .app-root {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
   height: 100vh;
   overflow: hidden;
 }
@@ -79,9 +80,17 @@ input, select { font-family: inherit; }
   width: 34px; height: 34px;
   background: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(139,92,246,0.2));
   border: 1px solid rgba(59,130,246,0.35);
-  border-radius: var(--radius-md);
+  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
   font-size: 1.1rem;
+}
+.brand-logo-img,
+.ob-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 .brand-name {
   font-size: 1rem;
@@ -859,11 +868,13 @@ input, select { font-family: inherit; }
 }
 /* While workspace is hidden, onboarding takes flex:1.
    Once workspace is .visible and onboarding is .hiding,
-   onboarding collapses (flex:0, overflow:hidden) after fade. */
+   onboarding collapses (flex:0, min-height:0, overflow:hidden) after fade. */
 .onboarding-screen.hiding {
   opacity: 0;
   pointer-events: none;
   flex: 0;
+  min-height: 0;
+  height: 0;
   overflow: hidden;
   transition: opacity 0.4s ease, flex 0s linear 0.45s;
 }
@@ -879,6 +890,7 @@ input, select { font-family: inherit; }
   align-items: center;
   justify-content: center;
   overflow: auto;
+  min-height: calc(100vh - var(--topbar-h));
   background: var(--bg);
 
   /* Grid texture matching the canvas dotted background */
@@ -890,19 +902,45 @@ input, select { font-family: inherit; }
 
 /* ── Card ── */
 .ob-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.2rem;
   max-width: 560px;
   width: 100%;
+  max-height: calc(100vh - var(--topbar-h) - 3rem);
   padding: 2.5rem 2rem;
-  background: rgba(14, 21, 33, 0.85);
+  background: rgba(14, 21, 33, 0.95);
   border: 1px solid rgba(255,255,255,0.09);
   border-radius: 16px;
   backdrop-filter: blur(12px);
   box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(59,130,246,0.08);
   text-align: center;
+  overflow: auto;
+  margin: 0 auto;
+}
+.ob-close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.ob-close-btn:hover {
+  background: rgba(255,255,255,0.16);
+  transform: translateY(-1px);
 }
 
 /* ── Animated Logo ── */
@@ -913,7 +951,9 @@ input, select { font-family: inherit; }
   flex-shrink: 0;
 }
 .ob-logo {
-  font-size: 2.2rem;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
   z-index: 2;
   position: relative;
   filter: drop-shadow(0 0 12px rgba(59,130,246,0.8));
@@ -1002,8 +1042,10 @@ input, select { font-family: inherit; }
 }
 .ob-cmd-line {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
 }
 .ob-cmd-indent { padding-left: 0.9rem; }
 .ob-prompt {
@@ -1017,7 +1059,10 @@ input, select { font-family: inherit; }
   font-size: 0.72rem;
   color: var(--cyan);
   text-align: left;
-  word-break: break-all;
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-width: 0;
+  flex: 1 1 0;
 }
 .ob-cmd-dim { color: rgba(6,182,212,0.55); }
 

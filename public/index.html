@@ -1,240 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SuriLens — Real-Time Execution Replay Engine</title>
-  <meta name="description" content="SuriLens: Watch HTTP requests travel through your backend in real time with an interactive execution replay engine.">
+  <meta name="description"
+    content="SuriLens: Watch HTTP requests travel through your backend in real time with an interactive execution replay engine.">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta property="og:image" content="/assets/og-image.png">
+  <meta name="twitter:image" content="/assets/twitter-card.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
-<body>
-<div class="app-root">
 
-  <!-- ═══════════════════════════════════════
+<body>
+  <div class="app-root">
+
+    <!-- ═══════════════════════════════════════
        TOP BAR — always visible
   ═══════════════════════════════════════ -->
-  <header class="topbar" role="banner">
-    <div class="topbar-brand">
-      <div class="brand-logo">⚡</div>
-      <div class="brand-text">
-        <h1 class="brand-name">SuriLens <span class="brand-tag">Enterprise APM</span></h1>
-        <p class="brand-sub">Universal Backend Observability & Replay Platform</p>
-      </div>
-    </div>
-
-    <div class="topbar-metrics" role="status" aria-label="Live metrics">
-      <div class="ws-indicator" id="ws-indicator" aria-live="polite">
-        <span class="ws-dot" id="ws-dot"></span>
-        <span id="ws-label">CONNECTING</span>
-      </div>
-      <div class="metric-chip"><span class="metric-key">TRACES</span><span class="metric-val" id="m-traces">0</span></div>
-      <div class="metric-chip"><span class="metric-key">AVG</span><span class="metric-val" id="m-avg">0ms</span></div>
-      <div class="metric-chip"><span class="metric-key">ACTIVE</span><span class="metric-val val-blue" id="m-active">0</span></div>
-      <div class="metric-chip"><span class="metric-key">MEM</span><span class="metric-val" id="m-mem">0MB</span></div>
-      <div class="metric-chip"><span class="metric-key">CPU</span><span class="metric-val" id="m-cpu">0%</span></div>
-    </div>
-
-    <div class="topbar-controls">
-      <button class="replay-btn" id="btn-export" title="Export Trace Session Bundle">📥 Export</button>
-      <button class="replay-btn" id="btn-import" title="Import Trace Session Bundle">📤 Import</button>
-      <input type="file" id="file-import-input" accept=".json" style="display:none;">
-
-      <button class="mode-btn active" id="btn-live" title="Live Mode" aria-pressed="true">
-        <span class="mode-dot"></span> LIVE
-      </button>
-
-      <div class="replay-controls" id="replay-controls" aria-label="Replay controls">
-        <button class="replay-btn" id="btn-first" title="Jump to Start (Home)">⏮</button>
-        <button class="replay-btn" id="btn-prev" title="Step Backward (←)">⏪</button>
-        <button class="replay-btn accent" id="btn-play" title="Play / Pause (Space)">⏯</button>
-        <button class="replay-btn" id="btn-next" title="Step Forward (→)">⏩</button>
-        <button class="replay-btn" id="btn-last" title="Jump to End (End)">⏭</button>
+    <header class="topbar" role="banner">
+      <div class="topbar-brand">
+        <div class="brand-logo"><img src="/assets/logo-64.png" alt="SuriLens Logo" class="brand-logo-img"></div>
+        <div class="brand-text">
+          <h1 class="brand-name">SuriLens <span class="brand-tag">Enterprise APM</span></h1>
+          <p class="brand-sub">Universal Backend Observability & Replay Platform</p>
+        </div>
       </div>
 
-      <select class="speed-select" id="speed-select" title="Playback Speed" aria-label="Playback speed">
-        <option value="0.25">0.25×</option>
-        <option value="0.5">0.5×</option>
-        <option value="1" selected>1×</option>
-        <option value="2">2×</option>
-        <option value="4">4×</option>
-      </select>
-
-      <div class="canvas-ctrl-group" role="group" aria-label="Canvas zoom controls">
-        <button class="canvas-ctrl-btn" id="btn-zoom-in" title="Zoom In (+)">+</button>
-        <button class="canvas-ctrl-btn" id="btn-zoom-out" title="Zoom Out (-)">−</button>
-        <button class="canvas-ctrl-btn" id="btn-fit" title="Fit View (F)">⛶</button>
+      <div class="topbar-metrics" role="status" aria-label="Live metrics">
+        <div class="ws-indicator" id="ws-indicator" aria-live="polite">
+          <span class="ws-dot" id="ws-dot"></span>
+          <span id="ws-label">CONNECTING</span>
+        </div>
+        <div class="metric-chip"><span class="metric-key">TRACES</span><span class="metric-val" id="m-traces">0</span>
+        </div>
+        <div class="metric-chip"><span class="metric-key">AVG</span><span class="metric-val" id="m-avg">0ms</span></div>
+        <div class="metric-chip"><span class="metric-key">ACTIVE</span><span class="metric-val val-blue"
+            id="m-active">0</span></div>
+        <div class="metric-chip"><span class="metric-key">MEM</span><span class="metric-val" id="m-mem">0MB</span></div>
+        <div class="metric-chip"><span class="metric-key">CPU</span><span class="metric-val" id="m-cpu">0%</span></div>
       </div>
-    </div>
-  </header>
 
-  <!-- ═══════════════════════════════════════
+      <div class="topbar-controls">
+        <button class="replay-btn" id="btn-export" title="Export Trace Session Bundle">📥 Export</button>
+        <button class="replay-btn" id="btn-import" title="Import Trace Session Bundle">📤 Import</button>
+        <input type="file" id="file-import-input" accept=".json" style="display:none;">
+
+        <button class="mode-btn active" id="btn-live" title="Live Mode" aria-pressed="true">
+          <span class="mode-dot"></span> LIVE
+        </button>
+
+        <div class="replay-controls" id="replay-controls" aria-label="Replay controls">
+          <button class="replay-btn" id="btn-first" title="Jump to Start (Home)">⏮</button>
+          <button class="replay-btn" id="btn-prev" title="Step Backward (←)">⏪</button>
+          <button class="replay-btn accent" id="btn-play" title="Play / Pause (Space)">⏯</button>
+          <button class="replay-btn" id="btn-next" title="Step Forward (→)">⏩</button>
+          <button class="replay-btn" id="btn-last" title="Jump to End (End)">⏭</button>
+        </div>
+
+        <select class="speed-select" id="speed-select" title="Playback Speed" aria-label="Playback speed">
+          <option value="0.25">0.25×</option>
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="4">4×</option>
+        </select>
+
+        <div class="canvas-ctrl-group" role="group" aria-label="Canvas zoom controls">
+          <button class="canvas-ctrl-btn" id="btn-zoom-in" title="Zoom In (+)">+</button>
+          <button class="canvas-ctrl-btn" id="btn-zoom-out" title="Zoom Out (-)">−</button>
+          <button class="canvas-ctrl-btn" id="btn-fit" title="Fit View (F)">⛶</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════
        ONBOARDING SCREEN
   ═══════════════════════════════════════ -->
-  <div id="onboarding-screen" class="onboarding-screen" role="main">
-    <div class="ob-card">
-      <div class="ob-logo-wrap">
-        <div class="ob-logo-ring ob-ring-1"></div>
-        <div class="ob-logo-ring ob-ring-2"></div>
-        <div class="ob-logo">⚡</div>
-      </div>
-
-      <h2 class="ob-title">Waiting for Backend Events</h2>
-      <p class="ob-subtitle">
-        SuriLens watches your Node.js app in real time across Express, Fastify, NestJS, Koa & Hono.<br>
-        Every HTTP request becomes a live moving object on the graph.
-      </p>
-
-      <div class="ob-divider"></div>
-
-      <p class="ob-section-label">Quick Start — try one of these:</p>
-      <div class="ob-terminal">
-        <div class="ob-terminal-bar">
-          <span class="ob-dot ob-dot-red"></span>
-          <span class="ob-dot ob-dot-amber"></span>
-          <span class="ob-dot ob-dot-green"></span>
-          <span class="ob-terminal-title">bash</span>
+    <div id="onboarding-screen" class="onboarding-screen" role="main">
+      <div class="ob-card">
+        <div class="ob-logo-wrap">
+          <div class="ob-logo-ring ob-ring-1"></div>
+          <div class="ob-logo-ring ob-ring-2"></div>
+          <div class="ob-logo"><img src="/assets/logo-128.png" alt="SuriLens Logo" class="ob-logo-img"></div>
         </div>
-        <div class="ob-terminal-body">
-          <div class="ob-cmd-line">
-            <span class="ob-prompt">$</span>
-            <span class="ob-cmd">curl http://localhost:3000/api/users/1</span>
+
+        <button id="btn-close-onboarding" class="ob-close-btn" title="Close onboarding">✕</button>
+
+        <h2 class="ob-title">Waiting for Backend Events</h2>
+        <p class="ob-subtitle">
+          SuriLens watches your Node.js app in real time across Express, Fastify, NestJS, Koa & Hono.<br>
+          Every HTTP request becomes a live moving object on the graph.
+        </p>
+
+        <div class="ob-divider"></div>
+
+        <p class="ob-section-label">Quick Start — try one of these:</p>
+        <div class="ob-terminal">
+          <div class="ob-terminal-bar">
+            <span class="ob-dot ob-dot-red"></span>
+            <span class="ob-dot ob-dot-amber"></span>
+            <span class="ob-dot ob-dot-green"></span>
+            <span class="ob-terminal-title">bash</span>
           </div>
-          <div class="ob-cmd-line">
-            <span class="ob-prompt">$</span>
-            <span class="ob-cmd">curl -X POST http://localhost:3000/api/orders \</span>
-          </div>
-          <div class="ob-cmd-line ob-cmd-indent">
-            <span class="ob-cmd ob-cmd-dim">&nbsp;&nbsp;-H "Content-Type: application/json" \</span>
-          </div>
-          <div class="ob-cmd-line ob-cmd-indent">
-            <span class="ob-cmd ob-cmd-dim">&nbsp;&nbsp;-d '{"item":"laptop","qty":1}'</span>
+          <div class="ob-terminal-body">
+            <div class="ob-cmd-line">
+              <span class="ob-prompt">$</span>
+              <span class="ob-cmd">curl http://localhost:3000/api/users/1</span>
+            </div>
+            <div class="ob-cmd-line">
+              <span class="ob-prompt">$</span>
+              <span class="ob-cmd">curl -X POST http://localhost:3000/api/orders \</span>
+            </div>
+            <div class="ob-cmd-line ob-cmd-indent">
+              <span class="ob-cmd ob-cmd-dim">&nbsp;&nbsp;-H "Content-Type: application/json" \</span>
+            </div>
+            <div class="ob-cmd-line ob-cmd-indent">
+              <span class="ob-cmd ob-cmd-dim">&nbsp;&nbsp;-d '{"item":"laptop","qty":1}'</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="ob-features">
-        <div class="ob-feature"><span class="ob-feat-icon">⚡</span><span>Universal framework adapters: Express, Fastify, Koa, NestJS, Hono</span></div>
-        <div class="ob-feature"><span class="ob-feat-icon">🔗</span><span>Distributed tracing with W3C traceparent correlation IDs</span></div>
-        <div class="ob-feature"><span class="ob-feat-icon">⚠️</span><span>Performance Intelligence & Bottleneck detection (slow routes, memory/CPU spikes)</span></div>
-        <div class="ob-feature"><span class="ob-feat-icon">🔍</span><span>Advanced Search, Filter, Session Export & Interactive Replay</span></div>
-      </div>
+        <div class="ob-features">
+          <div class="ob-feature"><span class="ob-feat-icon">⚡</span><span>Universal framework adapters: Express,
+              Fastify, Koa, NestJS, Hono</span></div>
+          <div class="ob-feature"><span class="ob-feat-icon">🔗</span><span>Distributed tracing with W3C traceparent
+              correlation IDs</span></div>
+          <div class="ob-feature"><span class="ob-feat-icon">⚠️</span><span>Performance Intelligence & Bottleneck
+              detection (slow routes, memory/CPU spikes)</span></div>
+          <div class="ob-feature"><span class="ob-feat-icon">🔍</span><span>Advanced Search, Filter, Session Export &
+              Interactive Replay</span></div>
+        </div>
 
-      <div style="margin-top: 16px; text-align: center;">
-        <button id="btn-start-demo-trace" style="background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-          ▶ Preview Interactive Demo Trace (Example Visualization)
-        </button>
-      </div>
+        <div style="margin-top: 16px; text-align: center;">
+          <button id="btn-start-demo-trace"
+            style="background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+            ▶ Preview Interactive Demo Trace (Example Visualization)
+          </button>
+        </div>
 
-      <div class="ob-status-bar" id="ob-status-bar">
-        <span class="ob-status-dot" id="ob-status-dot"></span>
-        <span class="ob-status-text" id="ob-status-text">Connecting to backend…</span>
+        <div class="ob-status-bar" id="ob-status-bar">
+          <span class="ob-status-dot" id="ob-status-dot"></span>
+          <span class="ob-status-text" id="ob-status-text">Connecting to backend…</span>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- ═══════════════════════════════════════
+    <!-- ═══════════════════════════════════════
        APP WORKSPACE
   ═══════════════════════════════════════ -->
-  <div id="app-workspace" class="app-workspace" aria-hidden="true">
+    <div id="app-workspace" class="app-workspace" aria-hidden="true">
 
-    <!-- Advanced Search & Filter Bar -->
-    <div class="search-toolbar" style="padding: 6px 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; gap: 8px; align-items: center;">
-      <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">SEARCH & FILTER:</span>
-      <input type="search" class="search-input" id="search-input" placeholder="Filter route or ID…" style="flex: 1; max-width: 200px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
-      <select id="filter-method" style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
-        <option value="">ALL METHODS</option>
-        <option value="GET">GET</option>
-        <option value="POST">POST</option>
-        <option value="PUT">PUT</option>
-        <option value="DELETE">DELETE</option>
-      </select>
-      <select id="filter-status" style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
-        <option value="">ALL STATUS</option>
-        <option value="200">200 OK</option>
-        <option value="400">400 Bad Req</option>
-        <option value="500">500 Server Err</option>
-      </select>
-      <input type="number" id="filter-min-latency" placeholder="Min ms…" style="width: 80px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
-    </div>
+      <!-- Advanced Search & Filter Bar -->
+      <div class="search-toolbar"
+        style="padding: 6px 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; gap: 8px; align-items: center;">
+        <span
+          style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">SEARCH
+          & FILTER:</span>
+        <input type="search" class="search-input" id="search-input" placeholder="Filter route or ID…"
+          style="flex: 1; max-width: 200px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+        <select id="filter-method"
+          style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+          <option value="">ALL METHODS</option>
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <select id="filter-status"
+          style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+          <option value="">ALL STATUS</option>
+          <option value="200">200 OK</option>
+          <option value="400">400 Bad Req</option>
+          <option value="500">500 Server Err</option>
+        </select>
+        <input type="number" id="filter-min-latency" placeholder="Min ms…"
+          style="width: 80px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+      </div>
 
-    <!-- Main row: explorer + canvas + inspector -->
-    <div class="main-workspace">
+      <!-- Main row: explorer + canvas + inspector -->
+      <div class="main-workspace">
 
-      <!-- LEFT: Request Explorer -->
-      <aside class="explorer-panel" aria-label="Request Explorer">
-        <div class="panel-hdr">
-          <span class="panel-hdr-title">Request Explorer</span>
+        <!-- LEFT: Request Explorer -->
+        <aside class="explorer-panel" aria-label="Request Explorer">
+          <div class="panel-hdr">
+            <span class="panel-hdr-title">Request Explorer</span>
+          </div>
+          <div class="explorer-list" id="explorer-list" role="list" aria-label="Completed requests">
+            <div class="list-empty-hint">
+              <span class="empty-icon-sm">📡</span>
+              <span>Waiting for requests…</span>
+            </div>
+          </div>
+        </aside>
+
+        <!-- CENTER: Pure execution canvas -->
+        <div class="canvas-wrapper" id="canvas-wrapper" role="region" aria-label="Execution graph canvas">
+          <svg id="svg-layer" class="svg-layer" aria-hidden="true"></svg>
+          <div id="node-layer" class="node-layer" aria-label="Pipeline nodes"></div>
+          <canvas id="packet-canvas" class="packet-canvas" aria-hidden="true"></canvas>
         </div>
-        <div class="explorer-list" id="explorer-list" role="list" aria-label="Completed requests">
-          <div class="list-empty-hint">
-            <span class="empty-icon-sm">📡</span>
-            <span>Waiting for requests…</span>
+
+        <!-- RIGHT: Inspector -->
+        <div class="inspector-panel" id="inspector-panel" role="complementary" aria-label="Execution Inspector">
+          <div class="panel-hdr">
+            <span class="panel-hdr-title" id="inspector-title">Inspector</span>
+            <button class="icon-btn" id="btn-close-inspector" title="Close Inspector"
+              aria-label="Close inspector">✕</button>
+          </div>
+          <div class="inspector-body" id="inspector-body">
+            <div class="list-empty-hint">
+              <span class="empty-icon-sm">🔍</span>
+              <span>Click a node or 📦 packet to inspect</span>
+            </div>
           </div>
         </div>
-      </aside>
 
-      <!-- CENTER: Pure execution canvas -->
-      <div class="canvas-wrapper" id="canvas-wrapper" role="region" aria-label="Execution graph canvas">
-        <svg id="svg-layer" class="svg-layer" aria-hidden="true"></svg>
-        <div id="node-layer" class="node-layer" aria-label="Pipeline nodes"></div>
-        <canvas id="packet-canvas" class="packet-canvas" aria-hidden="true"></canvas>
-      </div>
+      </div><!-- /main-workspace -->
 
-      <!-- RIGHT: Inspector -->
-      <div class="inspector-panel" id="inspector-panel" role="complementary" aria-label="Execution Inspector">
-        <div class="panel-hdr">
-          <span class="panel-hdr-title" id="inspector-title">Inspector</span>
-          <button class="icon-btn" id="btn-close-inspector" title="Close Inspector" aria-label="Close inspector">✕</button>
-        </div>
-        <div class="inspector-body" id="inspector-body">
-          <div class="list-empty-hint">
-            <span class="empty-icon-sm">🔍</span>
-            <span>Click a node or 📦 packet to inspect</span>
+      <!-- BOTTOM PANEL: Timeline + Console -->
+      <div class="bottom-panel">
+
+        <div class="timeline-section" role="region" aria-label="Execution Timeline">
+          <div class="timeline-hdr">
+            <span class="timeline-label">⏱ TIMELINE</span>
+            <span class="timeline-mode-badge" id="timeline-mode-badge">LIVE</span>
+            <span class="timeline-hint" id="timeline-hint">Click a marker or request to replay</span>
+          </div>
+          <div class="timeline-track" id="timeline-track" role="scrollbar" aria-label="Execution timeline">
+            <div class="timeline-cursor" id="timeline-cursor" aria-hidden="true"></div>
           </div>
         </div>
-      </div>
 
-    </div><!-- /main-workspace -->
-
-    <!-- BOTTOM PANEL: Timeline + Console -->
-    <div class="bottom-panel">
-
-      <div class="timeline-section" role="region" aria-label="Execution Timeline">
-        <div class="timeline-hdr">
-          <span class="timeline-label">⏱ TIMELINE</span>
-          <span class="timeline-mode-badge" id="timeline-mode-badge">LIVE</span>
-          <span class="timeline-hint" id="timeline-hint">Click a marker or request to replay</span>
+        <div class="console-section" role="log" aria-label="Backend Console">
+          <div class="console-hdr">
+            <span class="console-label">💻 Console</span>
+            <span class="console-count" id="console-count">0 events</span>
+            <button class="clear-btn" id="btn-clear-console" aria-label="Clear console">Clear</button>
+          </div>
+          <div class="console-lines" id="console-lines" aria-live="polite" aria-relevant="additions"></div>
         </div>
-        <div class="timeline-track" id="timeline-track" role="scrollbar" aria-label="Execution timeline">
-          <div class="timeline-cursor" id="timeline-cursor" aria-hidden="true"></div>
-        </div>
-      </div>
 
-      <div class="console-section" role="log" aria-label="Backend Console">
-        <div class="console-hdr">
-          <span class="console-label">💻 Console</span>
-          <span class="console-count" id="console-count">0 events</span>
-          <button class="clear-btn" id="btn-clear-console" aria-label="Clear console">Clear</button>
-        </div>
-        <div class="console-lines" id="console-lines" aria-live="polite" aria-relevant="additions"></div>
-      </div>
+      </div><!-- /bottom-panel -->
 
-    </div><!-- /bottom-panel -->
+    </div><!-- /app-workspace -->
 
-  </div><!-- /app-workspace -->
+  </div><!-- /app-root -->
 
-</div><!-- /app-root -->
-
-<!-- Scripts — loaded in dependency order with absolute paths -->
-<script src="/js/node-manager.js"></script>
-<script src="/js/svg-edges.js"></script>
-<script src="/js/canvas-renderer.js"></script>
-<script src="/js/inspector.js"></script>
-<script src="/js/timeline.js"></script>
-<script src="/js/execution-engine.js"></script>
-<script src="/js/app.js"></script>
+  <!-- Scripts — loaded in dependency order with absolute paths -->
+  <script src="/js/node-manager.js"></script>
+  <script src="/js/svg-edges.js"></script>
+  <script src="/js/canvas-renderer.js"></script>
+  <script src="/js/inspector.js"></script>
+  <script src="/js/timeline.js"></script>
+  <script src="/js/execution-engine.js"></script>
+  <script src="/js/app.js"></script>
 </body>
+
 </html>

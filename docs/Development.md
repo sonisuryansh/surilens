@@ -8,7 +8,7 @@ Setting up your local environment to contribute to SuriLens.
 
 1. **Clone Repository**:
    ```bash
-   git clone https://github.com/surilens/surilens.git
+   git clone https://github.com/sonisuryansh/surilens.git
    cd surilens
    ```
 

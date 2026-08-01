@@ -1,6 +1,6 @@
 {
   "name": "surilens",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enterprise-grade real-time backend execution visualizer & observability platform for Node.js across Express, Fastify, NestJS, Koa, and Hono.",
   "main": "index.js",
   "exports": {

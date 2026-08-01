@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org)
 [![Universal Adapters](https://img.shields.io/badge/adapters-Express%20%7C%20Fastify%20%7C%20Koa%20%7C%20NestJS%20%7C%20Hono-6366f1.svg)](#framework-adapters)
-[![W3C Distributed Tracing](https://img.shields.io/badge/tracing-W3C%20Trace Context-10b981.svg)](#distributed-tracing)
+[![W3C Trace Context](https://img.shields.io/badge/W3C-Trace_Context-10b981?logo=w3c&logoColor=white)](https://www.w3.org/TR/trace-context/)
 
 **SuriLens** is an enterprise-grade backend visualization and APM observability toolkit for Node.js applications. It intercepts incoming HTTP requests and visualizes their execution flow in real time across framework routers, middleware chains, business controllers, services, database queries, and outbound third-party APIs using a live 60fps interactive execution graph.
 

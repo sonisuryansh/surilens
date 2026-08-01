@@ -900,6 +900,15 @@ input, select { font-family: inherit; }
   transition: opacity 0.4s ease;
 }
 
+.onboarding-screen.hiding {
+  opacity: 0;
+  pointer-events: none;
+  flex: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden;
+}
+
 /* ── Card ── */
 .ob-card {
   position: relative;

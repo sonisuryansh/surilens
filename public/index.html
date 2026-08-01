@@ -16,6 +16,15 @@
   <meta name="twitter:image" content="/assets/twitter-card.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <script>
+    try {
+      if (localStorage.getItem('surilens:onboarding-dismissed') === '1') {
+        document.documentElement.classList.add('onboarding-suppressed');
+      }
+    } catch (err) {
+      // ignore private mode storage errors
+    }
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap"
     rel="stylesheet">

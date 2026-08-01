@@ -35,8 +35,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const obStatusTextEl = document.getElementById('ob-status-text');
   const btnCloseOnboarding = document.getElementById('btn-close-onboarding');
 
-  let hasActivatedWorkspace = false;
+  const onboardingStorageKey = 'surilens:onboarding-dismissed';
   let onboardingDismissed = false;
+
+  try {
+    onboardingDismissed = localStorage.getItem(onboardingStorageKey) === '1';
+  } catch (err) {
+    onboardingDismissed = false;
+  }
+
+  function persistOnboardingDismissal() {
+    onboardingDismissed = true;
+    try {
+      localStorage.setItem(onboardingStorageKey, '1');
+    } catch (err) {
+      // ignore storage errors in private/incognito mode
+    }
+  }
 
   function revealWorkspace() {
     if (onboardingScreenEl) onboardingScreenEl.classList.add('hiding');
@@ -44,18 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
       appWorkspaceEl.classList.add('visible');
       appWorkspaceEl.setAttribute('aria-hidden', 'false');
     }
-    hasActivatedWorkspace = true;
   }
 
   function dismissOnboarding() {
     if (onboardingDismissed) return;
-    onboardingDismissed = true;
-    if (onboardingScreenEl) onboardingScreenEl.classList.add('hiding');
-    if (appWorkspaceEl) {
-      appWorkspaceEl.classList.add('visible');
-      appWorkspaceEl.setAttribute('aria-hidden', 'false');
-    }
-    hasActivatedWorkspace = true;
+    persistOnboardingDismissal();
+    revealWorkspace();
   }
 
   /* Metric elements */
@@ -457,6 +466,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (obStatusBarEl) obStatusBarEl.className = 'ob-status-bar connected';
       if (obStatusTextEl) obStatusTextEl.textContent = 'Listening for backend requests…';
       appendLog('info', '[SuriLens] WebSocket connected — watching backend execution in real time');
+      persistOnboardingDismissal();
+      revealWorkspace();
     };
 
     socket.onclose = () => {
@@ -482,6 +493,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function scheduleReconnect() {
     reconnect = setTimeout(connectWS, 2500);
+  }
+
+  if (onboardingDismissed) {
+    revealWorkspace();
   }
 
   connectWS();

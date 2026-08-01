@@ -866,6 +866,20 @@ input, select { font-family: inherit; }
   opacity: 1;
   pointer-events: auto;
 }
+html.onboarding-suppressed .onboarding-screen,
+html.onboarding-suppressed .onboarding-screen.hiding {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  flex: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  display: none !important;
+}
+html.onboarding-suppressed .app-workspace {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
 /* While workspace is hidden, onboarding takes flex:1.
    Once workspace is .visible and onboarding is .hiding,
    onboarding collapses (flex:0, min-height:0, overflow:hidden) after fade. */
@@ -898,15 +912,6 @@ input, select { font-family: inherit; }
   background-size: 28px 28px;
 
   transition: opacity 0.4s ease;
-}
-
-.onboarding-screen.hiding {
-  opacity: 0;
-  pointer-events: none;
-  flex: 0 !important;
-  min-height: 0 !important;
-  height: 0 !important;
-  overflow: hidden;
 }
 
 /* ── Card ── */

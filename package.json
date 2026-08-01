@@ -1,0 +1,85 @@
+{
+  "name": "surilens",
+  "version": "1.0.0",
+  "description": "Enterprise-grade real-time backend execution visualizer & observability platform for Node.js across Express, Fastify, NestJS, Koa, and Hono.",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./adapters/express": "./lib/adapters/express.js",
+    "./adapters/fastify": "./lib/adapters/fastify.js",
+    "./adapters/koa": "./lib/adapters/koa.js",
+    "./adapters/nest": "./lib/adapters/nest.js",
+    "./adapters/hono": "./lib/adapters/hono.js"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "public",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "node -e \"require('./index')\" && node --check index.js",
+    "demo": "node example/server.js",
+    "pack:check": "npm pack --dry-run",
+    "prepublishOnly": "node --check index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonisuryansh/surilens.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sonisuryansh/surilens/issues"
+  },
+  "homepage": "https://github.com/sonisuryansh/surilens#readme",
+  "keywords": [
+    "express",
+    "fastify",
+    "koa",
+    "nest",
+    "hono",
+    "surilens",
+    "apm",
+    "visualization",
+    "tracing",
+    "distributed-tracing",
+    "opentelemetry",
+    "websocket",
+    "dashboard",
+    "observability",
+    "node"
+  ],
+  "author": "Suryansh Soni (https://github.com/sonisuryansh)",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "peerDependencies": {
+    "express": "^4.19.0 || ^5.0.0",
+    "fastify": "^4.0.0 || ^5.0.0",
+    "koa": "^2.0.0",
+    "@nestjs/common": "^9.0.0 || ^10.0.0",
+    "hono": "^3.0.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    },
+    "fastify": {
+      "optional": true
+    },
+    "koa": {
+      "optional": true
+    },
+    "@nestjs/common": {
+      "optional": true
+    },
+    "hono": {
+      "optional": true
+    }
+  }
+}

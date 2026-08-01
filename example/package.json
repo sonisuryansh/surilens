@@ -1,0 +1,13 @@
+{
+  "name": "surilens-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo Express application using SuriLens",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

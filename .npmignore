@@ -1,0 +1,31 @@
+# Development & Repository Exclusions
+.git
+.gitignore
+.github
+.vscode
+.idea
+
+# Documentation & Source Specs
+docs/
+brain/
+scratch/
+implementation_plan.md
+walkthrough.md
+
+# Log & Event Files
+events/
+*.log
+
+# Example Application
+example/
+
+# Node Modules & Lockfiles
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS & Temp Files
+.DS_Store
+Thumbs.db
+*.tmp

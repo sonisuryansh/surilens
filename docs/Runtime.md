@@ -1,47 +1,128 @@
-# ⏱️ Runtime Execution Engine
+# Runtime & Auto-Instrumentation
 
-SuriLens instruments your application process at runtime using Node.js `AsyncLocalStorage` and microtask execution hooks.
+SuriLens can automatically trace many common libraries without any changes to your code.
 
 ---
 
-## 1. Context Storage (`async-context.js`)
+## How Auto-Instrumentation Works
 
-Node.js `AsyncLocalStorage` maintains state across asynchronous call stacks without manually passing context arguments through your functions.
+When the SuriLens middleware first loads, it calls `autoInstrument()` which:
 
-When a request enters:
-1. SuriLens invokes `createTraceContext(traceData)`.
-2. A unique `traceId` (e.g. `tr_8477756d`) and W3C distributed tracing context (`parentTraceId`, `correlationId`) are generated.
-3. `runWithContext(traceContext, fn)` runs the request execution chain inside the storage context.
+1. **Patches `http.request` and `https.request`** — All outbound HTTP calls are intercepted
+2. **Patches native `fetch`** — Node 18+ global `fetch` is intercepted
+3. **Patches the Node.js module loader** — When specific packages are `require()`d for the first time, their core methods are wrapped
 
-```javascript
-const { runWithContext, getContext } = require('./lib/core/async-context');
+No restart is required. Everything is patched at load time.
 
-runWithContext(traceContext, () => {
-  // Any function executed inside this boundary can access getContext()
-  const context = getContext();
-  console.log('Current Trace ID:', context.traceId);
-});
+---
+
+## Auto-Instrumented Libraries
+
+### HTTP & HTTPS (always active)
+
+Any call to `http.request()`, `https.request()`, or `fetch()` creates a node in the execution graph:
+
+- **Localhost calls** → Categorized as `Database`
+- **External calls** → Categorized as `External API (hostname)` (e.g., `External API (api.stripe.com)`)
+
+W3C `traceparent` and `x-correlation-id` headers are automatically injected into all outbound calls.
+
+### Database Drivers
+
+| Package | Auto-detected as |
+|---------|-----------------|
+| `mongoose` | `MongoDB (method)` |
+| `pg` | `PostgreSQL` |
+| `mysql2` | `MySQL` |
+
+### ORMs
+
+| Package | Auto-detected as |
+|---------|-----------------|
+| `@prisma/client` | `Prisma (model.method)` |
+| `sequelize` | `Sequelize (Model.method)` |
+
+### Cache
+
+| Package | Auto-detected as |
+|---------|-----------------|
+| `ioredis` | `Redis (command)` |
+| `redis` | `Redis (command)` |
+
+### Message Queues
+
+| Package | Auto-detected as |
+|---------|-----------------|
+| `kafkajs` | `Kafka (produce/consume)` |
+
+### Cloud Services
+
+| Package | Auto-detected as |
+|---------|-----------------|
+| `@aws-sdk/client-s3` | `S3 (operation)` |
+
+---
+
+## Triggering Manually
+
+`autoInstrument()` is called automatically when you use any of the framework adapters. If you are building a custom integration, call it explicitly:
+
+```js
+const suriLens = require('surilens');
+suriLens.autoInstrument();
+```
+
+It is safe to call multiple times — a guard prevents double-patching.
+
+---
+
+## Manual Step Tracing
+
+For code not covered by auto-instrumentation, use `suriLens.step()`:
+
+```js
+// Custom payment gateway
+suriLens.step('BrainTreeGateway', { action: 'charge', amount: 5000 });
+const result = await braintree.transaction.sale({ amount: '50.00' });
+
+// Custom in-memory cache
+suriLens.step('MemoryCache', { operation: 'GET', key: `user:${id}` });
+const cached = inMemoryCache.get(`user:${id}`);
 ```
 
 ---
 
-## 2. Dynamic Layer Detection (`instrumentor.js`)
+## Node Category Detection
 
-Instead of CPU-intensive timer polling (`setInterval`), SuriLens uses deterministic microtask execution hooks:
+When `transitionNode()` is called (by `suriLens.step()` or auto-instrumentation), the node name is scanned for category keywords:
 
-- Entry: Node `'Router'` is recorded immediately.
-- Router Resolution: In the next microtask tick (`process.nextTick`), SuriLens checks if Express matched a route pattern (`req.route.path`).
-- Controller Node: If `req.route` exists, transition to `'Controller'` is recorded with `{ path: req.route.path }`.
-- Middleware Node: If `req.route` does not exist yet, transition to `'Middleware'` is recorded.
+| Keyword in node name | Category assigned |
+|---------------------|------------------|
+| `express` | `express` |
+| `router` | `router` |
+| `middleware` | `middleware` |
+| `mongo`, `prisma`, `sequelize`, `postgres`, `mysql`, `database` | `database` |
+| `redis`, `cache` | `redis` |
+| `jwt`, `bcrypt`, `auth` | `jwt` |
+| `external`, `axios`, `fetch` | `external_http` |
+| `client` | `client` |
+| `response` | `response` |
+| _(anything else)_ | `function` |
+
+The category determines the node's color and icon in the dashboard graph.
 
 ---
 
-## 3. Outbound Auto-Instrumentation (`auto-instrument.js`)
+## Architecture-Independent Tracing
 
-Outbound HTTP and HTTPS calls (`http.request`, `https.request`, and global `fetch`) are monkey-patched upon middleware initialization.
+SuriLens works regardless of how your project is organized:
 
-When your application calls an external HTTP endpoint (e.g. Stripe, OpenAI, or a remote database):
-1. `auto-instrument.js` extracts the target hostname.
-2. If `localhost` or `127.0.0.1`, it assigns stage node `'Database'`.
-3. If remote (e.g. `api.stripe.com`), it assigns stage node `'External API (api.stripe.com)'`.
-4. Automatically injects W3C `traceparent` headers into outgoing request headers.
+- No folders at all (single-file app)
+- Controllers in `controllers/`
+- Services in `services/`
+- Repositories in `repositories/`
+- Utilities in `utils/` or `helpers/`
+- Database queries in `database/` or inline
+- Prisma, Sequelize, or raw SQL
+
+The execution graph is built from the actual runtime call stack, not from file system conventions.

@@ -1,30 +1,31 @@
-# 📚 SuriLens Documentation Index
+# SuriLens Documentation
 
-Welcome to the official **SuriLens** documentation system.
+Welcome to the SuriLens docs. Each file covers a specific aspect of the platform.
 
 ---
 
-## 📂 System Guides
+## Contents
 
-- [📘 **Getting Started**](./Getting-Started.md): Overview, core concepts, and high-level walkthrough.
-- [📦 **Installation**](./Installation.md): Installation prerequisites, package managers, and setup.
-- [🚀 **Quick Start**](./Quick-Start.md): Setup examples for Express, Fastify, NestJS, Koa, and Hono.
-- [🏗️ **Architecture**](./Architecture.md): System architecture, execution layers, and memory design.
-- [📂 **Folder Structure**](./Folder-Structure.md): Complete directory reference.
-- [⏱️ **Runtime Lifecycle**](./Runtime.md): Middleware hooks and AsyncLocalStorage context.
-- [🔄 **Request Lifecycle**](./Request-Lifecycle.md): Step-by-step trace movement through the backend graph.
-- [📡 **Event System**](./Event-System.md): Collector EventEmitter and WebSocket protocol.
-- [🔒 **Payload Tracking & Security**](./Payload-Tracking.md): Payload diffs and sensitive data masking.
-- [🎬 **Replay System**](./Replay-System.md): Visual replay controls, playback speeds, and timelines.
-- [🖥️ **Dashboard UI**](./Dashboard.md): Graph canvas, request explorer, search, and inspector.
-- [🔌 **Plugin System & SDK**](./Plugin-System.md): Building custom plugins and using SDK helpers.
-- [📑 **API Reference**](./API-Reference.md): Comprehensive API method signatures.
-- [⚙️ **Configuration**](./Configuration.md): Configuration options, defaults, and production flags.
-- [💻 **Development**](./Development.md): Local environment setup, test commands, and contributing.
-- [🏭 **Production Setup**](./Production.md): Production hardening, performance considerations, and memory safety.
-- [🚀 **Deployment**](./Deployment.md): Docker, Kubernetes, Monorepos, and Cloud deployments.
-- [❓ **Troubleshooting**](./Troubleshooting.md): Diagnosing common issues and port conflicts.
-- [💬 **FAQ**](./FAQ.md): Frequently Asked Questions.
-- [🌟 **Best Practices**](./Best-Practices.md): Recommended guidelines for enterprise production usage.
-- [🤝 **Contributing**](./Contributing.md): Guidelines for open-source contributors.
-- [📜 **Changelog**](./Changelog.md): Release history and version updates.
+| Document | Description |
+|----------|-------------|
+| [Quick-Start.md](Quick-Start.md) | Five-minute setup guide |
+| [Getting-Started.md](Getting-Started.md) | Detailed introduction and first steps |
+| [Installation.md](Installation.md) | Installation options and requirements |
+| [Configuration.md](Configuration.md) | All configuration options with defaults |
+| [API-Reference.md](API-Reference.md) | Complete API: middleware, SDK, REST, WebSocket |
+| [Architecture.md](Architecture.md) | Internal engine architecture |
+| [Dashboard.md](Dashboard.md) | Dashboard UI panels and features |
+| [Request-Lifecycle.md](Request-Lifecycle.md) | How a single request is traced end-to-end |
+| [Runtime.md](Runtime.md) | Auto-instrumentation and zero-config tracing |
+| [Payload-Tracking.md](Payload-Tracking.md) | Payload capture, masking, and diff |
+| [Event-System.md](Event-System.md) | WebSocket events and EventEmitter API |
+| [Replay-System.md](Replay-System.md) | Visual Replay Engine guide |
+| [Plugin-System.md](Plugin-System.md) | Plugin SDK reference |
+| [Folder-Structure.md](Folder-Structure.md) | Repository layout reference |
+| [Best-Practices.md](Best-Practices.md) | Usage recommendations |
+| [Production.md](Production.md) | Production deployment guidance |
+| [Changelog.md](Changelog.md) | Version history |
+| [FAQ.md](FAQ.md) | Frequently asked questions |
+| [Troubleshooting.md](Troubleshooting.md) | Common issues and fixes |
+| [Development.md](Development.md) | Contributing and local dev setup |
+| [Deployment.md](Deployment.md) | Deployment considerations |

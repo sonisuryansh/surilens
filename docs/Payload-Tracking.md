@@ -1,48 +1,119 @@
-# 🔒 Payload Tracking & Sensitive Data Masking
+# Payload Tracking
 
-SuriLens captures payload snapshots at each stage of request execution while enforcing strict enterprise data masking and memory bounds.
-
----
-
-## Sensitive Data Masking (`event-store.js`)
-
-`maskSensitiveData(data)` recursively inspects objects and array fields. Any key containing substring matches for sensitive fields is automatically masked with `'********'`.
-
-### Masked Field Key Rules
-- `password`, `pass`
-- `secret`
-- `token`, `bearer`, `access_token`, `id_token`
-- `authorization`, `auth`
-- `apikey`, `privatekey`, `key`
-- `cookie`
-- `ssn`, `card`
-
-### Header Sanitization Example
-```javascript
-// Raw Header:
-{ "authorization": "Bearer eyJhbGciOiJKV1QiLC...", "cookie": "session=xyz123" }
-
-// Sanitized Header:
-{ "authorization": "Bearer ****W1QiLC...", "cookie": "********" }
-```
+SuriLens captures request and response payloads at each stage of the execution pipeline and displays them in the Inspector panel with security masking and diff analysis.
 
 ---
 
-## Payload Diff Engine (`computePayloadDiff`)
+## What Gets Captured
 
-SuriLens compares JSON payload snapshots between consecutive pipeline stages (`Stage N` vs `Stage N+1`) to highlight modifications made by middleware or controllers:
+For each HTTP request, SuriLens captures:
 
-```json
+| Stage | Data Captured |
+|-------|--------------|
+| Client (request entry) | Request body, query params, URL params |
+| Each `suriLens.step()` call | Metadata passed as the second argument |
+| Response | Response body (via `res.json()` interception) |
+
+---
+
+## Stage Payloads
+
+Payloads are stored per-stage in `trace.stagePayloads`:
+
+```js
 {
-  "added": { "userId": 101 },
-  "modified": { "status": { "from": "pending", "to": "active" } },
-  "removed": { "tempToken": "xyz" }
+  "Client": { "item": "keyboard", "qty": 2 },
+  "Controller": { "item": "keyboard", "qty": 2 },
+  "Service": { "item": "keyboard", "qty": 2, "validated": true }
 }
 ```
 
 ---
 
-## Payload Memory Safety
+## Payload Size Limit
 
-To prevent V8 heap exhaustion on large file uploads or batch JSON imports:
-- Payloads exceeding **32KB** (`maxPayloadSize`) are automatically truncated in memory with a `_truncated: true` indicator.
+Payloads larger than `maxPayloadSize` (default 32KB) are automatically truncated:
+
+```js
+{
+  "_truncated": true,
+  "_originalSize": 98304,
+  "summary": "{ \"items\": [ ... (first 512 chars) ..."
+}
+```
+
+Adjust the limit with the `maxPayloadSize` option:
+
+```js
+app.use(suriLens({ maxPayloadSize: 65536 })); // 64KB
+```
+
+---
+
+## Security Masking
+
+The following field names are automatically masked with `"********"` wherever they appear in any payload:
+
+- `password`, `pass`
+- `secret`
+- `token`, `access_token`, `id_token`
+- `authorization`, `auth`, `bearer`
+- `apikey`, `privatekey`
+- `cookie`
+- `ssn`, `card`
+
+Masking is recursive — nested objects are scanned at all depths.
+
+**Example — Before Display:**
+```json
+{
+  "username": "alice",
+  "password": "hunter2",
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+**After Masking:**
+```json
+{
+  "username": "alice",
+  "password": "********",
+  "token": "********"
+}
+```
+
+---
+
+## Payload Diff (Inspector Panel)
+
+The Inspector panel shows a Git-style diff between consecutive stage payloads:
+
+```
++ added:    { "orderId": "ord_12345" }
+~ modified: { "status": { "from": "pending", "to": "confirmed" } }
+- removed:  { "tempToken": "..." }
+```
+
+This makes it easy to see exactly how your data transforms as it flows through the pipeline.
+
+---
+
+## Headers
+
+Request headers are captured and displayed with masking applied:
+
+- `Authorization` header: Only the last 4 characters of the token are shown
+  - Example: `Bearer ****abcd`
+- `Cookie` header: Replaced entirely with `****`
+
+---
+
+## Response Capture
+
+SuriLens intercepts `res.json()` to capture response payloads automatically:
+
+```js
+res.json({ success: true, data: user }); // Captured automatically
+```
+
+For non-JSON responses (raw `res.end()`, streams, etc.), the response body may be `null` in the Inspector.

@@ -1,25 +1,30 @@
-# 📦 Installation Guide
+# Installation
 
-## Requirements
-
-- **Node.js**: Version `>=18.0.0` (requires native `AsyncLocalStorage` and `fetch` support).
-- **Operating Systems**: macOS, Linux, Windows.
+Full installation guide for SuriLens.
 
 ---
 
-## Installing via NPM
+## Requirements
+
+- **Node.js** >= 18.0.0
+- One of: Express, Fastify, Koa, NestJS, or Hono
+- npm, yarn, or pnpm
+
+---
+
+## Install via npm
 
 ```bash
 npm install surilens
 ```
 
-## Installing via Yarn
+## Install via yarn
 
 ```bash
 yarn add surilens
 ```
 
-## Installing via PNPM
+## Install via pnpm
 
 ```bash
 pnpm add surilens
@@ -27,10 +32,31 @@ pnpm add surilens
 
 ---
 
-## Dependencies Overview
+## Peer Dependencies
 
-SuriLens is engineered with **zero heavy mandatory dependencies**:
-- `express`: Supported framework target.
-- `ws`: Lightweight, fast WebSocket server for live telemetry streaming.
+SuriLens has **zero required peer dependencies**. All framework dependencies are optional:
 
-All framework adapters (Fastify, Koa, NestJS, Hono) use optional dynamic detection and do not pollute your production `package.json`.
+| Package | Version |
+|---------|---------|
+| `express` | ^4.x or ^5.x |
+| `fastify` | ^4.x or ^5.x |
+| `koa` | ^2.x |
+| `@nestjs/common` | ^9.x or ^10.x |
+| `hono` | ^3.x or ^4.x |
+
+Install only what you need for your framework.
+
+---
+
+## Verify Installation
+
+```bash
+node -e "const s = require('surilens'); console.log('SuriLens loaded:', typeof s)"
+# SuriLens loaded: function
+```
+
+---
+
+## First Run
+
+See [Quick Start](Quick-Start.md) to get the dashboard running in under 5 minutes.

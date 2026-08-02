@@ -1,49 +1,147 @@
-# 🔌 Plugin System & SDK Helpers
+# Plugin System
 
-SuriLens provides high-level SDK helpers for instrumenting custom application layers, database operations, cache calls, background queue jobs, and third-party plugins.
+SuriLens provides a plugin SDK for building custom integrations with third-party libraries, queue systems, or cloud services.
 
 ---
 
-## SDK Helper Methods
+## Overview
 
-### 1. `suriLens.traceAsync(nodeName, fn, metadata)`
-Instruments custom asynchronous functions:
-```javascript
-const user = await suriLens.traceAsync('Service: UserService', async () => {
-  return await userService.findById(id);
-}, { userId: id });
-```
+A SuriLens plugin is a factory object with a `name` and an `init()` method. The `init()` function receives access to the core engine internals: `collector`, `getContext`, `traceAsync`, and `wrapFunction`.
 
-### 2. `suriLens.wrapFunction(nodeName, targetFn)`
-Wraps a synchronous or asynchronous function:
-```javascript
-const processPayment = suriLens.wrapFunction('Stripe Payment', async (amount) => {
-  return await stripe.charges.create({ amount });
+---
+
+## Creating a Plugin
+
+```js
+const suriLens = require('surilens');
+
+const myPlugin = suriLens.createPlugin('MyService', ({ collector, getContext, traceAsync, wrapFunction }) => {
+  // Your integration logic here
+  // Wrap functions, listen to events, etc.
+  console.log('[MyService] Plugin initialized');
 });
+
+// Initialize the plugin
+myPlugin.init({ apiKey: process.env.MY_API_KEY });
 ```
 
-### 3. `suriLens.traceCacheOperation(cacheType, operation, key, cacheFn)`
-Instruments cache operations with HIT/MISS tracking:
-```javascript
-const data = await suriLens.traceCacheOperation('Redis', 'GET', 'user_101', async () => {
-  return await redis.get('user_101');
+---
+
+## Plugin Init Parameters
+
+The `initFn` receives the following helpers:
+
+| Parameter | Description |
+|-----------|-------------|
+| `collector` | The singleton `SuriCollector` instance (EventEmitter) |
+| `getContext()` | Returns the current `AsyncLocalStorage` trace context, or `null` |
+| `traceAsync(name, fn, metadata?)` | Traces an async function |
+| `wrapFunction(name, fn)` | Wraps a sync/async function for auto-tracing |
+
+---
+
+## Examples
+
+### Wrapping a Third-Party Client
+
+```js
+const myServicePlugin = suriLens.createPlugin('Stripe', ({ wrapFunction }) => {
+  const stripe = require('stripe')(process.env.STRIPE_KEY);
+
+  // Wrap Stripe methods for automatic tracing
+  stripe.charges.create = wrapFunction('Stripe (charges.create)', stripe.charges.create.bind(stripe.charges));
+  stripe.customers.create = wrapFunction('Stripe (customers.create)', stripe.customers.create.bind(stripe.customers));
+
+  return stripe;
 });
+
+const stripe = myServicePlugin.init();
 ```
 
-### 4. `suriLens.traceQueueJob(queueName, jobName, jobFn)`
-Instruments background queue job processing:
-```javascript
-await suriLens.traceQueueJob('EmailQueue', 'SendWelcomeEmail', async () => {
-  await mailer.send(...);
-});
-```
+### Listening to Trace Events
 
-### 5. `suriLens.createPlugin(name, initFn)`
-Build custom SuriLens plugins:
-```javascript
-const myPlugin = suriLens.createPlugin('MyCustomPlugin', ({ collector, getContext }) => {
-  collector.on('trace_start', (trace) => {
-    console.log('Plugin notified of trace start:', trace.traceId);
+```js
+const alertPlugin = suriLens.createPlugin('SlowRouteAlert', ({ collector }) => {
+  collector.on('trace_complete', (trace) => {
+    if (trace.responseTime > 1000) {
+      console.warn(`[ALERT] Slow route detected: ${trace.route} took ${trace.responseTime}ms`);
+      // Send to Slack, PagerDuty, etc.
+    }
   });
 });
+
+alertPlugin.init();
 ```
+
+### Custom Queue Integration
+
+```js
+const bullPlugin = suriLens.createPlugin('BullMQ', ({ traceAsync, getContext }) => {
+  // Wrap BullMQ worker processor
+  return {
+    wrapProcessor: (queueName, processorFn) => async (job) => {
+      return await traceAsync(`Queue (${queueName})`, () => processorFn(job), {
+        jobId: job.id,
+        jobName: job.name
+      });
+    }
+  };
+});
+
+const bull = bullPlugin.init();
+
+// Usage in your app
+const worker = new Worker('email-queue', bull.wrapProcessor('email-queue', async (job) => {
+  await sendEmail(job.data);
+}));
+```
+
+---
+
+## SDK Helpers (Standalone)
+
+You can also use these helpers directly without creating a full plugin:
+
+### `suriLens.traceAsync(name, fn, metadata?)`
+
+```js
+const result = await suriLens.traceAsync('ExternalPayment', async () => {
+  return await paymentGateway.charge({ amount: 5000 });
+}, { gateway: 'braintree' });
+```
+
+### `suriLens.wrapFunction(name, fn)`
+
+```js
+const tracedSendEmail = suriLens.wrapFunction('Mailer', sendEmail);
+await tracedSendEmail({ to: 'user@example.com', subject: 'Welcome' });
+```
+
+### `suriLens.traceQueueJob(queue, job, fn, metadata?)`
+
+```js
+await suriLens.traceQueueJob('notifications', 'sendPushNotification', async () => {
+  await fcm.send({ token: deviceToken, body: 'Hello!' });
+}, { priority: 'high' });
+```
+
+### `suriLens.traceCacheOperation(type, op, key, fn)`
+
+```js
+const user = await suriLens.traceCacheOperation('Redis', 'GET', `user:${id}`, async () => {
+  return await redis.get(`user:${id}`);
+});
+```
+
+---
+
+## Plugin Object Shape
+
+```js
+{
+  name: 'MyPluginName',    // string — display name
+  init: (options = {}) => initFn({ collector, getContext, traceAsync, wrapFunction, ...options })
+}
+```
+
+The `initFn` return value is passed through as the return value of `init()`, allowing plugins to expose wrapped clients or utilities.

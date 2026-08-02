@@ -1,99 +1,85 @@
-# 🚀 Quick Start Guide
+# Quick Start
 
-Setting up SuriLens takes less than 2 minutes.
+Get SuriLens running in under 5 minutes.
 
 ---
 
-## 1. Express.js Application
+## 1. Install
 
-```javascript
+```bash
+npm install surilens
+```
+
+## 2. Add to Your App
+
+```js
 const express = require('express');
 const suriLens = require('surilens');
 
 const app = express();
 app.use(express.json());
 
-// Initialize SuriLens Middleware
+// One line — dashboard starts automatically
 app.use(suriLens({ dashboardPort: 4444 }));
 
-app.get('/api/users/:id', (req, res) => {
+// Add steps anywhere in your handlers
+app.get('/api/users/:id', async (req, res) => {
+  suriLens.step('Controller');
+  suriLens.step('Database', { query: 'SELECT * FROM users' });
   res.json({ id: req.params.id, name: 'Alice' });
-});
-
-app.listen(3000, () => {
-  console.log('App running on http://localhost:3000');
-  console.log('Dashboard running on http://localhost:4444');
-});
-```
-
----
-
-## 2. Fastify Application
-
-```javascript
-const Fastify = require('fastify');
-const suriLens = require('surilens');
-
-const fastify = Fastify();
-fastify.register(suriLens.adapters.fastify, { dashboardPort: 4444 });
-
-fastify.get('/api/orders', async (request, reply) => {
-  return { status: 'success', orders: [] };
-});
-
-fastify.listen({ port: 3000 });
-```
-
----
-
-## 3. NestJS Application
-
-```typescript
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import * as suriLens from 'surilens';
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  app.use(suriLens({ dashboardPort: 4444 }));
-  app.useGlobalInterceptors(new suriLens.adapters.nest());
-  
-  await app.listen(3000);
-}
-bootstrap();
-```
-
----
-
-## 4. Koa Application
-
-```javascript
-const Koa = require('koa');
-const suriLens = require('surilens');
-
-const app = new Koa();
-app.use(suriLens.adapters.koa({ dashboardPort: 4444 }));
-
-app.use(async (ctx) => {
-  ctx.body = { message: 'Hello Koa' };
 });
 
 app.listen(3000);
 ```
 
+## 3. Open Dashboard
+
+Visit: **http://localhost:4444**
+
+## 4. Make Requests
+
+```bash
+curl http://localhost:3000/api/users/1
+```
+
+Watch the execution graph animate in real-time.
+
 ---
 
-## 5. Hono Application (Node.js)
+## Framework Adapters
 
-```javascript
-const { Hono } = require('hono');
-const suriLens = require('surilens');
+```js
+// Fastify
+const { adapters } = require('surilens');
+fastify.register(adapters.fastify, { dashboardPort: 4444 });
 
-const app = new Hono();
-app.use('*', suriLens.adapters.hono({ dashboardPort: 4444 }));
+// Koa
+app.use(adapters.koa({ dashboardPort: 4444 }));
 
-app.get('/', (c) => c.json({ message: 'Hello Hono' }));
+// NestJS
+app.use(adapters.nest({ dashboardPort: 4444 }));
 
-module.exports = app;
+// Hono
+app.use('*', adapters.hono({ dashboardPort: 4444 }));
 ```
+
+---
+
+## Run the Built-In Demo
+
+```bash
+cd example
+npm install
+node server.js
+
+# App:       http://localhost:3000
+# Dashboard: http://localhost:4444
+```
+
+---
+
+## Next Steps
+
+- [Getting Started](Getting-Started.md) — Detailed setup guide
+- [Configuration](Configuration.md) — All available options
+- [API Reference](API-Reference.md) — Complete API documentation

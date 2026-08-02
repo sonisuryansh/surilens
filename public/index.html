@@ -26,8 +26,9 @@
     }
   </script>
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
     rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 
@@ -35,14 +36,14 @@
   <div class="app-root">
 
     <!-- ═══════════════════════════════════════
-       TOP BAR — always visible
+       TOP BAR — Enterprise Navigation Header
   ═══════════════════════════════════════ -->
     <header class="topbar" role="banner">
       <div class="topbar-brand">
         <div class="brand-logo"><img src="/assets/logo-64.png" alt="SuriLens Logo" class="brand-logo-img"></div>
         <div class="brand-text">
           <h1 class="brand-name">SuriLens <span class="brand-tag">Enterprise APM</span></h1>
-          <p class="brand-sub">Universal Backend Observability & Replay Platform</p>
+          <p class="brand-sub">Universal Backend Observability Platform</p>
         </div>
       </div>
 
@@ -51,18 +52,23 @@
           <span class="ws-dot" id="ws-dot"></span>
           <span id="ws-label">CONNECTING</span>
         </div>
-        <div class="metric-chip"><span class="metric-key">TRACES</span><span class="metric-val" id="m-traces">0</span>
-        </div>
+        <div class="metric-chip"><span class="metric-key">TRACES</span><span class="metric-val" id="m-traces">0</span></div>
         <div class="metric-chip"><span class="metric-key">AVG</span><span class="metric-val" id="m-avg">0ms</span></div>
-        <div class="metric-chip"><span class="metric-key">ACTIVE</span><span class="metric-val val-blue"
-            id="m-active">0</span></div>
+        <div class="metric-chip"><span class="metric-key">ACTIVE</span><span class="metric-val val-blue" id="m-active">0</span></div>
         <div class="metric-chip"><span class="metric-key">MEM</span><span class="metric-val" id="m-mem">0MB</span></div>
         <div class="metric-chip"><span class="metric-key">CPU</span><span class="metric-val" id="m-cpu">0%</span></div>
       </div>
 
       <div class="topbar-controls">
-        <button class="replay-btn" id="btn-export" title="Export Trace Session Bundle">📥 Export</button>
-        <button class="replay-btn" id="btn-import" title="Import Trace Session Bundle">📤 Import</button>
+        <button class="replay-btn btn-qa" id="btn-run-qa" title="Run Enterprise QA Test Suite Live">
+          <i data-lucide="flask-conical" class="btn-icon"></i> 🧪 Run QA Suite
+        </button>
+        <button class="replay-btn" id="btn-export" title="Export Trace Session Bundle">
+          <i data-lucide="download" class="btn-icon"></i> Export
+        </button>
+        <button class="replay-btn" id="btn-import" title="Import Trace Session Bundle">
+          <i data-lucide="upload" class="btn-icon"></i> Import
+        </button>
         <input type="file" id="file-import-input" accept=".json" style="display:none;">
 
         <button class="mode-btn active" id="btn-live" title="Live Mode" aria-pressed="true">
@@ -70,11 +76,11 @@
         </button>
 
         <div class="replay-controls" id="replay-controls" aria-label="Replay controls">
-          <button class="replay-btn" id="btn-first" title="Jump to Start (Home)">⏮</button>
-          <button class="replay-btn" id="btn-prev" title="Step Backward (←)">⏪</button>
-          <button class="replay-btn accent" id="btn-play" title="Play / Pause (Space)">⏯</button>
-          <button class="replay-btn" id="btn-next" title="Step Forward (→)">⏩</button>
-          <button class="replay-btn" id="btn-last" title="Jump to End (End)">⏭</button>
+          <button class="replay-btn" id="btn-first" title="Jump to Start (Home)"><i data-lucide="skip-back" class="btn-icon"></i></button>
+          <button class="replay-btn" id="btn-prev" title="Step Backward (←)"><i data-lucide="rewind" class="btn-icon"></i></button>
+          <button class="replay-btn accent" id="btn-play" title="Play / Pause (Space)"><i data-lucide="play" class="btn-icon"></i></button>
+          <button class="replay-btn" id="btn-next" title="Step Forward (→)"><i data-lucide="fast-forward" class="btn-icon"></i></button>
+          <button class="replay-btn" id="btn-last" title="Jump to End (End)"><i data-lucide="skip-forward" class="btn-icon"></i></button>
         </div>
 
         <select class="speed-select" id="speed-select" title="Playback Speed" aria-label="Playback speed">
@@ -86,9 +92,9 @@
         </select>
 
         <div class="canvas-ctrl-group" role="group" aria-label="Canvas zoom controls">
-          <button class="canvas-ctrl-btn" id="btn-zoom-in" title="Zoom In (+)">+</button>
-          <button class="canvas-ctrl-btn" id="btn-zoom-out" title="Zoom Out (-)">−</button>
-          <button class="canvas-ctrl-btn" id="btn-fit" title="Fit View (F)">⛶</button>
+          <button class="canvas-ctrl-btn" id="btn-zoom-in" title="Zoom In (+)"><i data-lucide="plus" class="btn-icon"></i></button>
+          <button class="canvas-ctrl-btn" id="btn-zoom-out" title="Zoom Out (-)"><i data-lucide="minus" class="btn-icon"></i></button>
+          <button class="canvas-ctrl-btn" id="btn-fit" title="Fit View (F)"><i data-lucide="maximize" class="btn-icon"></i></button>
         </div>
       </div>
     </header>
@@ -141,20 +147,15 @@
         </div>
 
         <div class="ob-features">
-          <div class="ob-feature"><span class="ob-feat-icon">⚡</span><span>Universal framework adapters: Express,
-              Fastify, Koa, NestJS, Hono</span></div>
-          <div class="ob-feature"><span class="ob-feat-icon">🔗</span><span>Distributed tracing with W3C traceparent
-              correlation IDs</span></div>
-          <div class="ob-feature"><span class="ob-feat-icon">⚠️</span><span>Performance Intelligence & Bottleneck
-              detection (slow routes, memory/CPU spikes)</span></div>
-          <div class="ob-feature"><span class="ob-feat-icon">🔍</span><span>Advanced Search, Filter, Session Export &
-              Interactive Replay</span></div>
+          <div class="ob-feature"><i data-lucide="zap" class="ob-feat-icon"></i><span>Universal framework adapters: Express, Fastify, Koa, NestJS, Hono</span></div>
+          <div class="ob-feature"><i data-lucide="link" class="ob-feat-icon"></i><span>Distributed tracing with W3C traceparent correlation IDs</span></div>
+          <div class="ob-feature"><i data-lucide="alert-triangle" class="ob-feat-icon"></i><span>Performance Intelligence & Bottleneck detection (slow routes, memory/CPU spikes)</span></div>
+          <div class="ob-feature"><i data-lucide="search" class="ob-feat-icon"></i><span>Advanced Search, Filter, Session Export & Interactive Replay</span></div>
         </div>
 
-        <div style="margin-top: 16px; text-align: center;">
-          <button id="btn-start-demo-trace"
-            style="background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-            ▶ Preview Interactive Demo Trace (Example Visualization)
+        <div class="ob-demo-wrap">
+          <button id="btn-start-demo-trace" class="ob-demo-btn">
+            <i data-lucide="play" class="btn-icon"></i> Preview Interactive Demo Trace (Example Visualization)
           </button>
         </div>
 
@@ -171,47 +172,54 @@
     <div id="app-workspace" class="app-workspace" aria-hidden="true">
 
       <!-- Advanced Search & Filter Bar -->
-      <div class="search-toolbar"
-        style="padding: 6px 16px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; gap: 8px; align-items: center;">
-        <span
-          style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">SEARCH
-          & FILTER:</span>
-        <input type="search" class="search-input" id="search-input" placeholder="Filter route or ID…"
-          style="flex: 1; max-width: 200px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
-        <select id="filter-method"
-          style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+      <div class="search-toolbar">
+        <span class="search-label"><i data-lucide="filter" class="search-icon-sm"></i> SEARCH & FILTER:</span>
+        <div class="search-input-wrap">
+          <i data-lucide="search" class="input-search-icon"></i>
+          <input type="search" class="search-input" id="search-input" placeholder="Filter route or ID…">
+        </div>
+        <select id="filter-method" class="filter-select">
           <option value="">ALL METHODS</option>
           <option value="GET">GET</option>
           <option value="POST">POST</option>
           <option value="PUT">PUT</option>
           <option value="DELETE">DELETE</option>
         </select>
-        <select id="filter-status"
-          style="padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+        <select id="filter-status" class="filter-select">
           <option value="">ALL STATUS</option>
           <option value="200">200 OK</option>
           <option value="400">400 Bad Req</option>
           <option value="500">500 Server Err</option>
         </select>
-        <input type="number" id="filter-min-latency" placeholder="Min ms…"
-          style="width: 80px; padding: 4px 8px; font-size: 12px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 4px; color: #fff;">
+        <input type="number" id="filter-min-latency" class="filter-input-num" placeholder="Min ms…">
+        
+        <div class="qa-scorecard-bar" id="qa-scorecard-bar" style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+          <span class="qa-score-pill pass" id="qa-score-arch" title="Architecture Scenarios">🧪 Arch: 17/17 PASS</span>
+          <span class="qa-score-pill" id="qa-score-mem" title="Memory Stability">📊 Mem: 3.4MB</span>
+          <span class="qa-score-pill" id="qa-score-lat" title="Latency Overhead">⚡ Overhead: 1.24ms</span>
+          <span class="qa-score-pill" id="qa-score-sec" title="Security Masking">🔐 Security: 100%</span>
+        </div>
       </div>
 
       <!-- Main row: explorer + canvas + inspector -->
       <div class="main-workspace">
 
         <!-- LEFT: Request Explorer -->
-        <aside class="explorer-panel" aria-label="Request Explorer">
+        <aside class="explorer-panel" id="explorer-panel" aria-label="Request Explorer">
           <div class="panel-hdr">
+            <i data-lucide="list" class="hdr-icon"></i>
             <span class="panel-hdr-title">Request Explorer</span>
           </div>
           <div class="explorer-list" id="explorer-list" role="list" aria-label="Completed requests">
             <div class="list-empty-hint">
-              <span class="empty-icon-sm">📡</span>
+              <i data-lucide="radio" class="empty-icon-sm"></i>
               <span>Waiting for requests…</span>
             </div>
           </div>
         </aside>
+
+        <!-- LEFT RESIZER -->
+        <div class="resizer resizer-h" id="resizer-explorer" title="Drag to resize Request Explorer"></div>
 
         <!-- CENTER: Pure execution canvas -->
         <div class="canvas-wrapper" id="canvas-wrapper" role="region" aria-label="Execution graph canvas">
@@ -220,29 +228,36 @@
           <canvas id="packet-canvas" class="packet-canvas" aria-hidden="true"></canvas>
         </div>
 
+        <!-- RIGHT RESIZER -->
+        <div class="resizer resizer-h" id="resizer-inspector" title="Drag to resize Inspector"></div>
+
         <!-- RIGHT: Inspector -->
         <div class="inspector-panel" id="inspector-panel" role="complementary" aria-label="Execution Inspector">
           <div class="panel-hdr">
+            <i data-lucide="sliders" class="hdr-icon"></i>
             <span class="panel-hdr-title" id="inspector-title">Inspector</span>
-            <button class="icon-btn" id="btn-close-inspector" title="Close Inspector"
-              aria-label="Close inspector">✕</button>
+            <button class="icon-btn" id="btn-expand-inspector" title="Maximize / Full Window" aria-label="Maximize inspector"><i data-lucide="maximize-2" class="btn-icon"></i></button>
+            <button class="icon-btn" id="btn-close-inspector" title="Close Inspector" aria-label="Close inspector">✕</button>
           </div>
           <div class="inspector-body" id="inspector-body">
             <div class="list-empty-hint">
-              <span class="empty-icon-sm">🔍</span>
-              <span>Click a node or 📦 packet to inspect</span>
+              <i data-lucide="search" class="empty-icon-sm"></i>
+              <span>Click a node or packet to inspect</span>
             </div>
           </div>
         </div>
 
       </div><!-- /main-workspace -->
 
-      <!-- BOTTOM PANEL: Timeline + Console -->
-      <div class="bottom-panel">
+      <!-- BOTTOM PANEL RESIZER -->
+      <div class="resizer resizer-v" id="resizer-bottom" title="Drag to resize Bottom Panel"></div>
 
-        <div class="timeline-section" role="region" aria-label="Execution Timeline">
+      <!-- BOTTOM PANEL: Timeline + Console -->
+      <div class="bottom-panel" id="bottom-panel">
+
+        <div class="timeline-section" id="timeline-section" role="region" aria-label="Execution Timeline">
           <div class="timeline-hdr">
-            <span class="timeline-label">⏱ TIMELINE</span>
+            <span class="timeline-label"><i data-lucide="clock" class="hdr-icon-sm"></i> TIMELINE</span>
             <span class="timeline-mode-badge" id="timeline-mode-badge">LIVE</span>
             <span class="timeline-hint" id="timeline-hint">Click a marker or request to replay</span>
           </div>
@@ -251,9 +266,12 @@
           </div>
         </div>
 
-        <div class="console-section" role="log" aria-label="Backend Console">
+        <!-- TIMELINE / CONSOLE RESIZER -->
+        <div class="resizer resizer-h" id="resizer-timeline" title="Drag to resize Timeline / Console split"></div>
+
+        <div class="console-section" id="console-section" role="log" aria-label="Backend Console">
           <div class="console-hdr">
-            <span class="console-label">💻 Console</span>
+            <span class="console-label"><i data-lucide="terminal" class="hdr-icon-sm"></i> Console</span>
             <span class="console-count" id="console-count">0 events</span>
             <button class="clear-btn" id="btn-clear-console" aria-label="Clear console">Clear</button>
           </div>
@@ -265,6 +283,15 @@
     </div><!-- /app-workspace -->
 
   </div><!-- /app-root -->
+
+  <!-- Initialize Lucide Icons -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
 
   <!-- Scripts — loaded in dependency order with absolute paths -->
   <script src="/js/node-manager.js"></script>

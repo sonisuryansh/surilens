@@ -121,6 +121,40 @@ apiRouter.get('/dynamic-node', async (req, res) => {
   });
 });
 
+// Direct Controller -> Database (NO Service layer - demonstrates architecture-independent runtime tracing)
+apiRouter.get('/direct-db', async (req, res) => {
+  suriLens.step('Controller', { handler: 'getDirectUser' });
+  suriLens.step('MongoDB (User.findOne)', { query: 'db.users.findOne({ id: 1 })', collection: 'users' });
+  await new Promise(r => setTimeout(r, 60));
+  res.json({ success: true, data: { id: 1, name: 'Direct User', architecture: 'Controller -> MongoDB' } });
+});
+
+// Direct Controller -> Prisma ORM
+apiRouter.get('/prisma-demo', async (req, res) => {
+  suriLens.step('Controller', { handler: 'getPrismaUser' });
+  suriLens.step('Prisma (user.findUnique)', { model: 'User', action: 'findUnique' });
+  await new Promise(r => setTimeout(r, 50));
+  res.json({ success: true, data: { id: 2, name: 'Prisma User' } });
+});
+
+// Direct Controller -> Bcrypt -> JWT Auth
+apiRouter.post('/login-demo', async (req, res) => {
+  suriLens.step('Controller', { handler: 'login' });
+  suriLens.step('Bcrypt (compare)', { op: 'compare' });
+  await new Promise(r => setTimeout(r, 30));
+  suriLens.step('JWT (sign)', { algorithm: 'HS256' });
+  await new Promise(r => setTimeout(r, 20));
+  res.json({ success: true, token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' });
+});
+
+// Direct Controller -> Redis Cache
+apiRouter.get('/redis-demo', async (req, res) => {
+  suriLens.step('Controller', { handler: 'getCachedProduct' });
+  suriLens.step('Redis (GET)', { key: 'product:101' });
+  await new Promise(r => setTimeout(r, 15));
+  res.json({ success: true, cached: true, data: { id: 101, title: 'Wireless Mouse' } });
+});
+
 app.use('/api', apiRouter);
 
 app.listen(PORT, () => {

@@ -31,26 +31,32 @@ class SVGEdgeRenderer {
   _initDefs() {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
     defs.innerHTML = `
-      <!-- Arrowhead markers -->
-      <marker id="arr-gray"  markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,1 L8,4 L0,7 Z" fill="rgba(100,116,139,0.5)"/>
+      <!-- Directional Arrowhead Markers -->
+      <marker id="arr-gray" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L7,3.5 L0,7 Z" fill="rgba(255, 255, 255, 0.25)"/>
       </marker>
-      <marker id="arr-blue"  markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,1 L8,4 L0,7 Z" fill="#3b82f6"/>
+      <marker id="arr-amber" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#F59E0B"/>
+      </marker>
+      <marker id="arr-completed" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#D7C8AE"/>
+      </marker>
+      <marker id="arr-cyan" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#06B6D4"/>
       </marker>
       <marker id="arr-green" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,1 L8,4 L0,7 Z" fill="#10b981"/>
+        <path d="M0,0 L8,4 L0,8 Z" fill="#22C55E"/>
       </marker>
-      <marker id="arr-red"   markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
-        <path d="M0,1 L8,4 L0,7 Z" fill="#ef4444"/>
+      <marker id="arr-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L8,4 L0,8 Z" fill="#EF4444"/>
       </marker>
 
-      <!-- Glow filters -->
-      <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <!-- Soft Ambient Glow filters -->
+      <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur"/>
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
-      <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+      <filter id="glow-amber" x="-50%" y="-50%" width="200%" height="200%">
         <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
         <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>
@@ -126,6 +132,28 @@ class SVGEdgeRenderer {
     this.edges.forEach(edge => {
       edge.state = 'idle';
       this._applyState(edge);
+    });
+  }
+
+  highlightEdgeChain(currentNodeId, prevNodeId, nextNodeId) {
+    this.edges.forEach((edge) => {
+      const isPrevEdge = prevNodeId && edge.fromId === prevNodeId && edge.toId === currentNodeId;
+      const isNextEdge = nextNodeId && edge.fromId === currentNodeId && edge.toId === nextNodeId;
+
+      if (isPrevEdge || isNextEdge) {
+        edge.g.style.opacity = '1';
+        edge.g.style.filter = 'drop-shadow(0 0 10px rgba(245, 158, 11, 0.9))';
+      } else {
+        edge.g.style.opacity = '0.12';
+        edge.g.style.filter = 'none';
+      }
+    });
+  }
+
+  clearHoverChain() {
+    this.edges.forEach((edge) => {
+      edge.g.style.opacity = '1';
+      edge.g.style.filter = 'none';
     });
   }
 
@@ -235,52 +263,51 @@ class SVGEdgeRenderer {
     switch (edge.state) {
 
       case 'active':
-        // Glowing blue with white flowing dashes
-        mainPath.setAttribute('stroke',       'rgba(59,130,246,0.95)');
-        mainPath.setAttribute('stroke-width', '2');
-        mainPath.setAttribute('marker-end',   'url(#arr-blue)');
-        glowPath.setAttribute('stroke',       'rgba(59,130,246,0.5)');
-        glowPath.setAttribute('stroke-width', '8');
-        glowPath.setAttribute('filter',       'url(#glow-blue)');
-        flowPath.setAttribute('stroke',       'rgba(255,255,255,0.85)');
-        flowPath.setAttribute('stroke-width', '1.5');
+        // Warm Beige active path with white/beige flowing dashes
+        mainPath.setAttribute('stroke',       'rgba(215,200,174,0.95)');
+        mainPath.setAttribute('stroke-width', '1.8');
+        mainPath.setAttribute('marker-end',   'url(#arr-cyan)');
+        glowPath.setAttribute('stroke',       'rgba(215,200,174,0.3)');
+        glowPath.setAttribute('stroke-width', '6');
+        glowPath.setAttribute('filter',       'url(#glow-cyan)');
+        flowPath.setAttribute('stroke',       'rgba(255,255,255,0.8)');
+        flowPath.setAttribute('stroke-width', '1.2');
         flowPath.setAttribute('marker-end',   'none');
-        // CSS @keyframes edgeFlow: from { stroke-dashoffset: 40 } to { stroke-dashoffset: 0 }
-        flowPath.style.animation = 'edgeFlow 0.55s linear infinite';
+        flowPath.style.animation = 'edgeFlow 0.65s linear infinite';
         break;
 
       case 'completed':
-        mainPath.setAttribute('stroke',       'rgba(16,185,129,0.65)');
-        mainPath.setAttribute('stroke-width', '1.5');
+        mainPath.setAttribute('stroke',       'rgba(85,107,93,0.65)');
+        mainPath.setAttribute('stroke-width', '1.2');
         mainPath.setAttribute('marker-end',   'url(#arr-green)');
         glowPath.setAttribute('stroke',       'transparent');
         flowPath.setAttribute('stroke',       'transparent');
         break;
 
       case 'return':
-        // Green flowing in reverse (response packet return path)
-        mainPath.setAttribute('stroke',       'rgba(16,185,129,0.9)');
-        mainPath.setAttribute('stroke-width', '2');
-        mainPath.setAttribute('marker-end',   'url(#arr-green)');
-        glowPath.setAttribute('stroke',       'rgba(16,185,129,0.4)');
-        glowPath.setAttribute('stroke-width', '8');
-        glowPath.setAttribute('filter',       'url(#glow-green)');
-        flowPath.setAttribute('stroke',       'rgba(255,255,255,0.75)');
-        flowPath.setAttribute('stroke-width', '1.5');
-        flowPath.style.animation = 'edgeFlow 0.55s linear infinite reverse';
+        // Warm Beige flowing in reverse (response packet return path)
+        mainPath.setAttribute('stroke',       'rgba(215,200,174,0.85)');
+        mainPath.setAttribute('stroke-width', '1.8');
+        mainPath.setAttribute('marker-end',   'url(#arr-cyan)');
+        glowPath.setAttribute('stroke',       'rgba(215,200,174,0.25)');
+        glowPath.setAttribute('stroke-width', '6');
+        glowPath.setAttribute('filter',       'url(#glow-cyan)');
+        flowPath.setAttribute('stroke',       'rgba(255,255,255,0.7)');
+        flowPath.setAttribute('stroke-width', '1.2');
+        flowPath.style.animation = 'edgeFlow 0.65s linear infinite reverse';
         break;
 
       case 'error':
-        mainPath.setAttribute('stroke',       'rgba(239,68,68,0.85)');
-        mainPath.setAttribute('stroke-width', '2');
+        mainPath.setAttribute('stroke',       'rgba(185,92,80,0.85)');
+        mainPath.setAttribute('stroke-width', '1.8');
         mainPath.setAttribute('marker-end',   'url(#arr-red)');
         glowPath.setAttribute('stroke',       'transparent');
         flowPath.setAttribute('stroke',       'transparent');
         break;
 
       default: // idle
-        mainPath.setAttribute('stroke',       'rgba(100,116,139,0.22)');
-        mainPath.setAttribute('stroke-width', '1.5');
+        mainPath.setAttribute('stroke',       'rgba(107,104,96,0.2)');
+        mainPath.setAttribute('stroke-width', '1.2');
         mainPath.setAttribute('marker-end',   'url(#arr-gray)');
         glowPath.setAttribute('stroke',       'transparent');
         flowPath.setAttribute('stroke',       'transparent');

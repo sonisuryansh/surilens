@@ -303,15 +303,15 @@ class CanvasRenderer {
     // Badge background
     const bx = x - bw / 2;
     const by = badgeY - bh / 2;
-    ctx.fillStyle = 'rgba(7, 10, 18, 0.88)';
+    ctx.fillStyle = 'rgba(26, 26, 24, 0.9)';
     ctx.roundRect(bx, by, bw, bh, 3);
     ctx.fill();
-    ctx.strokeStyle = color + '99';
+    ctx.strokeStyle = color + 'aa';
     ctx.lineWidth   = 1;
     ctx.stroke();
 
     // Badge text
-    ctx.fillStyle = '#e2e8f0';
+    ctx.fillStyle = '#e8e4dd';
     ctx.fillText(label, x, badgeY);
 
     // 📦 Carrier Icon

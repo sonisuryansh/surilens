@@ -17,7 +17,7 @@ function suriLens(options = {}) {
   const dashboardPort = options.dashboardPort || options.port || 4444;
 
   // Auto-launch local Dashboard server if not already running
-  if (!globalDashboardServer) {
+  if (!globalDashboardServer && !options.disableDashboard && options.dashboardPort !== 0) {
     globalDashboardServer = new DashboardServer({ dashboardPort, ...options });
     globalDashboardServer.start();
   }

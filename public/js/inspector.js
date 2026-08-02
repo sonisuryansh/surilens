@@ -19,11 +19,17 @@ class Inspector {
 
   open() {
     this.panel.classList.add('open');
+    this.panel.classList.remove('closed');
+    const resizer = document.getElementById('resizer-inspector');
+    if (resizer) resizer.classList.remove('hidden');
     this.isOpen = true;
   }
 
   close() {
     this.panel.classList.remove('open');
+    this.panel.classList.add('closed');
+    const resizer = document.getElementById('resizer-inspector');
+    if (resizer) resizer.classList.add('hidden');
     this.isOpen = false;
   }
 
@@ -138,7 +144,7 @@ class Inspector {
             <div class="timing-row">
               <span class="timing-stage">${node.label}</span>
               <div class="timing-bar-wrap">
-                <div class="timing-bar" style="width:${pct}%; background: ${node.state === 'error' ? '#ef4444' : '#3b82f6'}"></div>
+                <div class="timing-bar" style="width:${pct}%; background: ${node.state === 'error' ? 'linear-gradient(90deg, #b95c50, #c87a70)' : 'linear-gradient(90deg, #d7c8ae, #556b5d)'}"></div>
               </div>
               <span class="timing-val">${duration}ms</span>
             </div>
@@ -216,7 +222,7 @@ class Inspector {
           <div class="timing-row">
             <span class="timing-stage">${k}</span>
             <div class="timing-bar-wrap">
-              <div class="timing-bar" style="width:${Math.max(2, pct)}%; background: ${isError ? '#ef4444' : '#3b82f6'}"></div>
+              <div class="timing-bar" style="width:${Math.max(2, pct)}%; background: ${isError ? 'linear-gradient(90deg, #b95c50, #c87a70)' : 'linear-gradient(90deg, #d7c8ae, #556b5d)'}"></div>
             </div>
             <span class="timing-val">${v}ms</span>
           </div>

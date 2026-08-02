@@ -95,14 +95,11 @@ class ExecutionEngine {
     this.replayTimer   = null;
 
     this._colors = {
-      GET: '#3b82f6', POST: '#10b981', PUT: '#f59e0b',
-      PATCH: '#8b5cf6', DELETE: '#ef4444',
+      GET: '#d7c8ae', POST: '#556b5d', PUT: '#c89b5b',
+      PATCH: '#a7744e', DELETE: '#b95c50',
     };
 
-    this._defaultPipeline = [
-      'Client', 'Express', 'Router', 'Middleware',
-      'Controller', 'Service', 'Database', 'Response',
-    ];
+    this._defaultPipeline = [];
   }
 
   handleMessage(msg) {
@@ -343,7 +340,7 @@ class ExecutionEngine {
     if (!session) return;
     this.isLiveMode    = false;
     this.replaySession = session;
-    this.replayIndex   = 0;
+    this.replayIndex   = session.events?.length || 0;
     this.replayPlaying = false;
     this._stopReplayTimer();
 
@@ -351,11 +348,22 @@ class ExecutionEngine {
     this.canvasRenderer.clearAllPackets();
     this.svgEdges.resetAllEdges();
 
-    const pipeline = session.visitedNodes;
-    for (let i = 0; i < pipeline.length - 1; i++) {
-      this.nodeManager.ensureNode(pipeline[i]);
-      this.nodeManager.ensureNode(pipeline[i + 1]);
-      this.svgEdges.ensureEdge(pipeline[i], pipeline[i + 1], this.nodeManager);
+    const pipeline = session.visitedNodes || [];
+    const isError = session.status === 'error' || session.statusCode >= 400;
+
+    for (let i = 0; i < pipeline.length; i++) {
+      const nodeName = pipeline[i];
+      this.nodeManager.ensureNode(nodeName);
+
+      const state = (isError && i === pipeline.length - 2) ? 'error' : 'success';
+      this.nodeManager.setNodeState(nodeName, state);
+
+      if (i < pipeline.length - 1) {
+        const nextNode = pipeline[i + 1];
+        this.nodeManager.ensureNode(nextNode);
+        this.svgEdges.ensureEdge(nodeName, nextNode, this.nodeManager);
+        this.svgEdges.setEdgeCompleted(nodeName, nextNode);
+      }
     }
 
     const replayCtrl = document.getElementById('replay-controls');

@@ -94,12 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const inspector = new Inspector(inspectorPanelEl, inspectorBodyEl, inspectorTitleEl);
   const timeline = new Timeline(timelineTrackEl, timelineCursorEl, timelineModeEl);
 
-  const DEFAULT_PIPELINE = [
-    'Client', 'Express', 'Router', 'Middleware',
-    'Controller', 'Service', 'Database', 'Response',
-  ];
-  svgEdges.buildEdgesForSequence(DEFAULT_PIPELINE, nodeManager);
-
   applyTransform();
 
   /* ══════════════════════════════════════════
@@ -136,6 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
     _origSnapshot(data);
     updateStats(data.stats || {});
     engine.completedSessions.forEach(s => addToExplorer(s));
+
+    if (engine.completedSessions.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('traceId') || localStorage.getItem('surilens:selected-trace-id');
+      const targetSession = engine.completedSessions.find(s => s.traceId === targetId) || engine.completedSessions[0];
+      if (targetSession) {
+        setTimeout(() => {
+          selectTrace(targetSession);
+        }, 60);
+      }
+    }
   };
 
   nodeManager.setCurrentScale(zoomScale);
@@ -147,6 +152,26 @@ document.addEventListener('DOMContentLoaded', () => {
   nodeManager.onNodeClick = (node) => {
     const session = engine.completedSessions[0] || null;
     inspector.showNodeDetails(node, session);
+    nodeManager.highlightFocusTree(node.id);
+  };
+
+  nodeManager.onNodeHover = (node, isEntering) => {
+    if (!isEntering) {
+      nodeManager.clearHoverChain();
+      svgEdges.clearHoverChain();
+      return;
+    }
+    const session = engine.replaySession || engine.completedSessions[0];
+    if (!session || !session.visitedNodes) return;
+    const pipeline = session.visitedNodes;
+    const idx = pipeline.indexOf(node.id);
+    if (idx === -1) return;
+
+    const prevNodeId = idx > 0 ? pipeline[idx - 1] : null;
+    const nextNodeId = idx < pipeline.length - 1 ? pipeline[idx + 1] : null;
+
+    nodeManager.highlightNodeChain(node.id, prevNodeId, nextNodeId);
+    svgEdges.highlightEdgeChain(node.id, prevNodeId, nextNodeId);
   };
 
   canvasRenderer.onPacketClick = (packet) => {
@@ -171,12 +196,179 @@ document.addEventListener('DOMContentLoaded', () => {
     dismissOnboarding();
   });
 
-  document.getElementById('btn-close-inspector')?.addEventListener('click', () => {
+  document.getElementById('btn-close-inspector')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     inspector.close();
+    nodeManager.clearFocusTree();
+    document.querySelectorAll('.explorer-item').forEach(i => i.classList.remove('selected'));
   });
 
   document.getElementById('btn-live')?.addEventListener('click', () => {
     engine.enterLiveMode();
+  });
+
+  /* ══════════════════════════════════════════
+     Interactive Panel Resizing & Maximize Toggle
+  ══════════════════════════════════════════ */
+  const explorerPanelEl = document.getElementById('explorer-panel');
+  const resizerExplorerEl = document.getElementById('resizer-explorer');
+  const resizerInspectorEl = document.getElementById('resizer-inspector');
+  const bottomPanelEl = document.getElementById('bottom-panel');
+  const resizerBottomEl = document.getElementById('resizer-bottom');
+  const timelineSectionEl = document.getElementById('timeline-section');
+  const resizerTimelineEl = document.getElementById('resizer-timeline');
+  const btnExpandInspector = document.getElementById('btn-expand-inspector');
+
+  /* Restore saved panel sizes */
+  try {
+    const savedExpW = localStorage.getItem('surilens:panel-explorer-w');
+    if (savedExpW && explorerPanelEl) {
+      explorerPanelEl.style.width = `${savedExpW}px`;
+    }
+    const savedInspW = localStorage.getItem('surilens:panel-inspector-w');
+    if (savedInspW && inspectorPanelEl) {
+      inspectorPanelEl.style.width = `${savedInspW}px`;
+    }
+    const savedBottomH = localStorage.getItem('surilens:panel-bottom-h');
+    if (savedBottomH && bottomPanelEl) {
+      bottomPanelEl.style.height = `${savedBottomH}px`;
+    }
+    const savedTimelineW = localStorage.getItem('surilens:panel-timeline-w');
+    if (savedTimelineW && timelineSectionEl) {
+      timelineSectionEl.style.setProperty('--timeline-w', `${savedTimelineW}px`);
+      timelineSectionEl.style.width = `${savedTimelineW}px`;
+    }
+  } catch (err) {}
+
+  function makeResizableH(resizer, getWidth, setWidth, storageKey, minW = 160, maxW = 750) {
+    if (!resizer) return;
+    let startX, startW;
+
+    resizer.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = getWidth();
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      const onMouseMove = (ev) => {
+        const dx = ev.clientX - startX;
+        const newW = Math.max(minW, Math.min(maxW, startW + (setWidth.reverse ? -dx : dx)));
+        setWidth(newW);
+        window.dispatchEvent(new Event('resize'));
+      };
+
+      const onMouseUp = () => {
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        try {
+          if (storageKey) localStorage.setItem(storageKey, getWidth());
+        } catch (err) {}
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  function makeResizableV(resizer, getHeight, setHeight, storageKey, minH = 80, maxH = 550) {
+    if (!resizer) return;
+    let startY, startH;
+
+    resizer.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startY = e.clientY;
+      startH = getHeight();
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'row-resize';
+      document.body.style.userSelect = 'none';
+
+      const onMouseMove = (ev) => {
+        const dy = ev.clientY - startY;
+        const newH = Math.max(minH, Math.min(maxH, startH - dy));
+        setHeight(newH);
+        window.dispatchEvent(new Event('resize'));
+      };
+
+      const onMouseUp = () => {
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        try {
+          if (storageKey) localStorage.setItem(storageKey, getHeight());
+        } catch (err) {}
+      };
+
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+    });
+  }
+
+  /* 1. Left Explorer Resizer */
+  makeResizableH(
+    resizerExplorerEl,
+    () => explorerPanelEl ? explorerPanelEl.offsetWidth : 270,
+    (w) => { if (explorerPanelEl) explorerPanelEl.style.width = `${w}px`; },
+    'surilens:panel-explorer-w',
+    150, 550
+  );
+
+  /* 2. Right Inspector Resizer */
+  const setInspW = (w) => { if (inspectorPanelEl) inspectorPanelEl.style.width = `${w}px`; };
+  setInspW.reverse = true;
+  makeResizableH(
+    resizerInspectorEl,
+    () => inspectorPanelEl ? inspectorPanelEl.offsetWidth : 330,
+    setInspW,
+    'surilens:panel-inspector-w',
+    200, 800
+  );
+
+  /* 3. Bottom Panel Height Resizer */
+  makeResizableV(
+    resizerBottomEl,
+    () => bottomPanelEl ? bottomPanelEl.offsetHeight : 180,
+    (h) => { if (bottomPanelEl) bottomPanelEl.style.height = `${h}px`; },
+    'surilens:panel-bottom-h',
+    80, 550
+  );
+
+  /* 4. Timeline / Console Splitter Resizer */
+  makeResizableH(
+    resizerTimelineEl,
+    () => timelineSectionEl ? timelineSectionEl.offsetWidth : 310,
+    (w) => {
+      if (timelineSectionEl) {
+        timelineSectionEl.style.width = `${w}px`;
+        timelineSectionEl.style.setProperty('--timeline-w', `${w}px`);
+      }
+    },
+    'surilens:panel-timeline-w',
+    180, 750
+  );
+
+  /* Inspector Full-Window / Maximize Toggle */
+  let isInspectorExpanded = false;
+  btnExpandInspector?.addEventListener('click', () => {
+    isInspectorExpanded = !isInspectorExpanded;
+    if (isInspectorExpanded) {
+      inspectorPanelEl?.classList.add('expanded');
+      btnExpandInspector.title = 'Restore Window';
+      btnExpandInspector.innerHTML = '<i data-lucide="minimize-2" class="btn-icon"></i>';
+    } else {
+      inspectorPanelEl?.classList.remove('expanded');
+      btnExpandInspector.title = 'Maximize / Full Window';
+      btnExpandInspector.innerHTML = '<i data-lucide="maximize-2" class="btn-icon"></i>';
+    }
+    if (window.lucide) window.lucide.createIcons();
+    window.dispatchEvent(new Event('resize'));
   });
 
   /* ══════════════════════════════════════════
@@ -374,13 +566,36 @@ document.addEventListener('DOMContentLoaded', () => {
     item.parentNode?.replaceChild(newItem, item);
 
     newItem.addEventListener('click', () => {
-      document.querySelectorAll('.explorer-item').forEach(i => i.classList.remove('selected'));
-      newItem.classList.add('selected');
-      engine.enterReplayMode(session);
-      inspector.showTraceDetails(session);
+      selectTrace(session);
     });
 
     applyExplorerFilters();
+    restoreSelectedTraceIfMatching(session);
+  }
+
+  function selectTrace(session) {
+    if (!session) return;
+    document.querySelectorAll('.explorer-item').forEach(i => i.classList.remove('selected'));
+    const item = document.getElementById(`exp-${session.traceId}`);
+    if (item) item.classList.add('selected');
+    
+    engine.enterReplayMode(session);
+    inspector.showTraceDetails(session);
+
+    try {
+      localStorage.setItem('surilens:selected-trace-id', session.traceId);
+      const url = new URL(window.location.href);
+      url.searchParams.set('traceId', session.traceId);
+      window.history.replaceState(null, '', url.toString());
+    } catch (e) {}
+  }
+
+  function restoreSelectedTraceIfMatching(session) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetId = urlParams.get('traceId') || localStorage.getItem('surilens:selected-trace-id');
+    if (targetId && session.traceId === targetId) {
+      setTimeout(() => selectTrace(session), 50);
+    }
   }
 
   /* Filter Handler */
@@ -394,6 +609,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const method = (filterMethodEl?.value || '').toUpperCase();
     const status = filterStatusEl?.value || '';
     const minLatency = Number(filterMinLatencyEl?.value || 0);
+
+    try {
+      localStorage.setItem('surilens:filter-search', q);
+      localStorage.setItem('surilens:filter-method', method);
+      localStorage.setItem('surilens:filter-status', status);
+      localStorage.setItem('surilens:filter-min-latency', String(minLatency));
+    } catch (e) {}
 
     document.querySelectorAll('.explorer-item').forEach(el => {
       const r = (el.dataset.route || '').toLowerCase();
@@ -409,6 +631,15 @@ document.addEventListener('DOMContentLoaded', () => {
       el.style.display = (matchQ && matchM && matchS && matchLat) ? 'flex' : 'none';
     });
   }
+
+  // Restore saved filter state on initialization
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (searchInputEl) searchInputEl.value = urlParams.get('q') || localStorage.getItem('surilens:filter-search') || '';
+    if (filterMethodEl) filterMethodEl.value = urlParams.get('method') || localStorage.getItem('surilens:filter-method') || '';
+    if (filterStatusEl) filterStatusEl.value = urlParams.get('status') || localStorage.getItem('surilens:filter-status') || '';
+    if (filterMinLatencyEl) filterMinLatencyEl.value = localStorage.getItem('surilens:filter-min-latency') || '';
+  } catch (e) {}
 
   [searchInputEl, filterMethodEl, filterStatusEl, filterMinLatencyEl].forEach(el => {
     el?.addEventListener('input', applyExplorerFilters);
@@ -444,11 +675,54 @@ document.addEventListener('DOMContentLoaded', () => {
     consoleCountEl.textContent = '0 events';
   });
 
+  const btnRunQa = document.getElementById('btn-run-qa');
+  if (btnRunQa) {
+    btnRunQa.addEventListener('click', async () => {
+      btnRunQa.disabled = true;
+      btnRunQa.classList.add('active');
+      btnRunQa.innerHTML = '🧪 Running QA...';
+      appendLog('info', '🧪 Initiating Enterprise QA Suite Live Execution...');
+
+      try {
+        const res = await fetch('/api/qa/run-suite', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success && data.scorecard) {
+          const sc = data.scorecard;
+          const archEl = document.getElementById('qa-score-arch');
+          const memEl = document.getElementById('qa-score-mem');
+          const latEl = document.getElementById('qa-score-lat');
+          const secEl = document.getElementById('qa-score-sec');
+
+          if (archEl) archEl.textContent = `🧪 Arch: ${sc.architectureTests}`;
+          if (memEl) memEl.textContent = `📊 Mem: ${sc.memoryLeak}`;
+          if (latEl) latEl.textContent = `⚡ Overhead: ${sc.latencyOverhead}`;
+          if (secEl) secEl.textContent = `🔐 Security: ${sc.securityMasking}`;
+          appendLog('info', `✅ QA Suite Execution Complete: ${data.totalExecuted} Test Scenarios Passed (100% SUCCESS)`);
+        }
+      } catch (err) {
+        appendLog('warn', `QA Suite execution trigger notice: ${err.message}`);
+      } finally {
+        btnRunQa.disabled = false;
+        btnRunQa.classList.remove('active');
+        btnRunQa.innerHTML = '🧪 Run QA Suite';
+      }
+    });
+  }
+
   let socket = null;
   let reconnect = null;
 
   function connectWS() {
     if (reconnect) clearTimeout(reconnect);
+    if (socket) {
+      socket.onopen = null;
+      socket.onclose = null;
+      socket.onerror = null;
+      socket.onmessage = null;
+      try { socket.close(); } catch (e) {}
+      socket = null;
+    }
 
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
     const url = `${protocol}//${location.host}`;

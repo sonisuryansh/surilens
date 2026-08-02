@@ -12,6 +12,11 @@ scratch/
 implementation_plan.md
 walkthrough.md
 
+# Testing (Development Only)
+test/
+*.test.js
+*.spec.js
+
 # Log & Event Files
 events/
 *.log

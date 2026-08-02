@@ -24,25 +24,7 @@ class NodeManager {
     /** @type {function(NodeDef): void} */
     this.onNodeDrag = null;
 
-    this._initDefaultNodes();
     this._bindDragEvents();
-  }
-
-  /* ────────────────────────────────────────────────────────
-     Default pipeline nodes — always present on the canvas
-  ──────────────────────────────────────────────────────── */
-  _initDefaultNodes() {
-    const pipeline = [
-      { id: 'Client',     label: 'Client',      icon: '💻', x: 60,   y: 165 },
-      { id: 'Express',    label: 'Express',      icon: '⚡', x: 250,  y: 165 },
-      { id: 'Router',     label: 'Router',       icon: '🔀', x: 440,  y: 165 },
-      { id: 'Middleware', label: 'Middleware',   icon: '🛡️', x: 630,  y: 165 },
-      { id: 'Controller', label: 'Controller',   icon: '🎯', x: 820,  y: 165 },
-      { id: 'Service',    label: 'Service',      icon: '⚙️', x: 1010, y: 165 },
-      { id: 'Database',   label: 'Database',     icon: '🗄️', x: 1200, y: 165 },
-      { id: 'Response',   label: 'Response',     icon: '🚀', x: 1390, y: 165 },
-    ];
-    pipeline.forEach(n => this._createNode(n));
   }
 
   /* ────────────────────────────────────────────────────────
@@ -54,28 +36,97 @@ class NodeManager {
   }
 
   /**
-   * Ensures a node with the given ID exists, creating it if necessary.
-   * Used when backend emits a stage name we haven't seen before.
+   * Ensures a node with the given ID exists, creating it 100% on-demand from runtime events.
+   * Dynamically calculates canvas position along the runtime execution chain.
    */
   ensureNode(id) {
     if (this.nodes.has(id)) return this.nodes.get(id);
 
-    const iconMap = {
-      jwt: '🔐', auth: '🔐', authentication: '🔐',
-      cache: '⚡', redis: '🔴', memcache: '⚡',
-      mongo: '🍃', mongodb: '🍃', postgres: '🐘', mysql: '🐬',
-      email: '📧', smtp: '📧', queue: '📋', kafka: '📋',
-      logger: '📝', errormiddleware: '⚠️', error: '❌',
-      validator: '✅', validation: '✅',
-    };
-    const icon = iconMap[id.toLowerCase()] || '⚙️';
+    const lower = id.toLowerCase();
+    let icon = '⚙️';
+    if (lower.includes('mongo')) icon = '🍃';
+    else if (lower.includes('prisma')) icon = '💎';
+    else if (lower.includes('sequelize') || lower.includes('postgres') || lower.includes('mysql') || lower.includes('db') || lower.includes('database')) icon = '🗄️';
+    else if (lower.includes('redis') || lower.includes('cache')) icon = '🔴';
+    else if (lower.includes('jwt') || lower.includes('auth') || lower.includes('bcrypt') || lower.includes('crypto')) icon = '🔐';
+    else if (lower.includes('external') || lower.includes('axios') || lower.includes('fetch') || lower.includes('api')) icon = '🌐';
+    else if (lower.includes('queue') || lower.includes('kafka')) icon = '📋';
+    else if (lower.includes('express')) icon = '⚡';
+    else if (lower.includes('router')) icon = '🔀';
+    else if (lower.includes('middleware')) icon = '🛡️';
+    else if (lower === 'client') icon = '💻';
+    else if (lower === 'response') icon = '🚀';
 
-    // Position to the right of the last known node
-    const lastNode = [...this.nodes.values()].at(-1);
-    const x = lastNode ? lastNode.x + 190 : 60;
+    // Position dynamically based on current node count
+    const nodeCount = this.nodes.size;
+    const x = 60 + (nodeCount * 190);
     const y = 165;
 
     return this._createNode({ id, label: id, icon, x, y });
+  }
+
+  getCategoryClass(id) {
+    const lower = (id || '').toLowerCase();
+    if (lower === 'client') return 'node-cat-client';
+    if (lower.includes('express')) return 'node-cat-express';
+    if (lower.includes('router')) return 'node-cat-router';
+    if (lower.includes('middleware')) return 'node-cat-middleware';
+    if (lower.includes('controller')) return 'node-cat-controller';
+    if (lower.includes('service')) return 'node-cat-service';
+    if (lower.includes('repository')) return 'node-cat-repository';
+    if (lower.includes('mongo') || lower.includes('prisma') || lower.includes('sequelize') || lower.includes('postgres') || lower.includes('mysql') || lower.includes('db') || lower.includes('database')) return 'node-cat-database';
+    if (lower.includes('redis') || lower.includes('cache')) return 'node-cat-redis';
+    if (lower.includes('jwt')) return 'node-cat-jwt';
+    if (lower.includes('bcrypt') || lower.includes('crypto')) return 'node-cat-bcrypt';
+    if (lower.includes('external') || lower.includes('axios') || lower.includes('fetch') || lower.includes('api')) return 'node-cat-external';
+    if (lower.includes('worker') || lower.includes('queue') || lower.includes('kafka')) return 'node-cat-worker';
+    if (lower.includes('fs') || lower.includes('stream') || lower.includes('file')) return 'node-cat-filesystem';
+    if (lower === 'response') return 'node-cat-response';
+    return 'node-cat-function';
+  }
+
+  highlightFocusTree(activeId, connectedIds = []) {
+    const focusSet = new Set([activeId, ...connectedIds]);
+    this.nodes.forEach((n, id) => {
+      if (!n.el) return;
+      if (focusSet.has(id)) {
+        n.el.classList.add('in-focus-tree');
+        n.el.classList.remove('dimmed-by-focus');
+      } else {
+        n.el.classList.remove('in-focus-tree');
+        n.el.classList.add('dimmed-by-focus');
+      }
+    });
+  }
+
+  clearFocusTree() {
+    this.nodes.forEach(n => {
+      if (n.el) {
+        n.el.classList.remove('in-focus-tree', 'dimmed-by-focus');
+      }
+    });
+  }
+
+  highlightNodeChain(currentNodeId, prevNodeId, nextNodeId) {
+    const chainSet = new Set([currentNodeId, prevNodeId, nextNodeId].filter(Boolean));
+    this.nodes.forEach((n, id) => {
+      if (!n.el) return;
+      if (chainSet.has(id)) {
+        n.el.classList.add('in-hover-chain');
+        n.el.classList.remove('dimmed-by-hover');
+      } else {
+        n.el.classList.remove('in-hover-chain');
+        n.el.classList.add('dimmed-by-hover');
+      }
+    });
+  }
+
+  clearHoverChain() {
+    this.nodes.forEach((n) => {
+      if (n.el) {
+        n.el.classList.remove('in-hover-chain', 'dimmed-by-hover');
+      }
+    });
   }
 
   /* ────────────────────────────────────────────────────────
@@ -92,8 +143,9 @@ class NodeManager {
 
     node.state = state;
 
-    // CSS class drives the visual transition
-    node.el.className = `node-card state-${state}`;
+    // CSS class drives the visual transition and vibrant state glow
+    const catClass = this.getCategoryClass(id);
+    node.el.className = `node-card state-${state} ${catClass}`;
 
     const statusEl = node.el.querySelector('.node-status');
     const timerEl  = node.el.querySelector('.node-timer');
@@ -187,8 +239,8 @@ class NodeManager {
       icon:  icon  || '⚙️',
       x:     x !== undefined ? x : 60 + this.nodes.size * 190,
       y:     y !== undefined ? y : 165,
-      width: 130,
-      height: 70,
+      width: 144,
+      height: 74,
       state: 'idle',
       timerStart: null,
       timerInterval: null,
@@ -203,7 +255,8 @@ class NodeManager {
 
   _buildDOMElement(node) {
     const el = document.createElement('div');
-    el.className = 'node-card state-idle';
+    const catClass = this.getCategoryClass(node.id);
+    el.className = `node-card state-idle ${catClass}`;
     el.id        = `node-${node.id}`;
     el.style.left = `${node.x}px`;
     el.style.top  = `${node.y}px`;
@@ -226,6 +279,14 @@ class NodeManager {
     el.addEventListener('click', (e) => {
       if (e.target.classList.contains('node-drag-handle')) return;
       if (this.onNodeClick) this.onNodeClick(node);
+    });
+
+    el.addEventListener('mouseenter', () => {
+      if (this.onNodeHover) this.onNodeHover(node, true);
+    });
+
+    el.addEventListener('mouseleave', () => {
+      if (this.onNodeHover) this.onNodeHover(node, false);
     });
 
     return el;

@@ -20,7 +20,7 @@ npm i surilens
 
 <br/>
 
-<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/dashboard.png" alt="SuriLens Hero Dashboard" width="800" style="border-radius: 8px;" />
+<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/dashboard.png" alt="SuriLens Hero Dashboard" width="600" style="border-radius: 8px;" />
 
 <p><sub><em>Live execution graph showing complete request lifecycle through middleware, controllers, services, and databases.</em></sub></p>
 

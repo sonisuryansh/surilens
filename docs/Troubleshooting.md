@@ -32,7 +32,7 @@ Common issues and their solutions.
 
 **Symptom:** Clicking the × button in the Inspector panel does nothing
 
-**Fix:** This was fixed in v1.0.2. Ensure you are running the latest version.
+**Fix:** This was fixed in v1.1.3. Ensure you are running the latest version.
 
 ---
 

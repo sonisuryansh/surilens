@@ -4,7 +4,14 @@ All notable changes to SuriLens are documented here.
 
 ---
 
-## [1.0.2] — 2024 (Production Release)
+## [1.1.3] — Production Release
+
+### Improved
+- **Visual Presentation**: Updated hero dashboard preview images and optimized layout for GitHub and npm
+- **Dynamic Shields**: Live version, Node.js requirement, MIT license, and weekly download badges
+- **Modular Documentation**: Clean landing page architecture linking to dedicated docs
+
+## [1.0.2] — Production Release
 
 ### Added
 - **Visual Replay Engine** — Step-by-step re-execution of captured traces with Play/Pause/Speed controls (0.5×, 1×, 2×, 4×)

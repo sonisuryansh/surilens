@@ -2,9 +2,9 @@
 
 <img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/logo.png" alt="SuriLens Logo" width="75" />
 
-<h1>⚡ SuriLens</h1>
+# ⚡ SuriLens
 
-<p><strong>Enterprise-grade Real-Time Backend Observability Platform for Node.js</strong></p>
+**Enterprise-grade Real-Time Backend Observability Platform for Node.js**
 
 <p>
   <a href="https://www.npmjs.com/package/surilens"><img alt="npm version" src="https://img.shields.io/npm/v/surilens.svg?style=flat-square&color=blue" /></a>
@@ -20,7 +20,7 @@ npm i surilens
 
 <br/>
 
-<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/dashboard.png" alt="SuriLens Hero Dashboard" width="100%" style="border-radius: 8px;" />
+<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/dashboard.png" alt="SuriLens Hero Dashboard" width="800" style="border-radius: 8px;" />
 
 <p><sub><em>Live execution graph showing complete request lifecycle through middleware, controllers, services, and databases.</em></sub></p>
 

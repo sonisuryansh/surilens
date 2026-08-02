@@ -18,7 +18,7 @@ npm i surilens
 
 <br/>
 
-<img src="./docs/assets/dashboard-hero.png" alt="SuriLens Hero Dashboard" width="600" style="border-radius: 8px;" />
+<img src="./docs/assets/surilens-dashboard-preview.png" alt="SuriLens Dashboard Preview" width="750" style="border-radius: 8px;" />
 
 <p><sub><em>Live execution graph showing complete request lifecycle through middleware, controllers, services, and databases.</em></sub></p>
 

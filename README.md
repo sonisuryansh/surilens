@@ -1,52 +1,55 @@
 <div align="center">
 
-<img src="docs/assets/logo.png" alt="SuriLens Logo" width="220" />
+<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/logo.png" alt="SuriLens Logo" width="75" />
 
-<h1>SuriLens</h1>
+<h1>⚡ SuriLens</h1>
 
-<p><strong>Enterprise-grade real-time backend execution visualizer & observability platform for Node.js</strong></p>
+<p><strong>Enterprise-grade Real-Time Backend Observability Platform for Node.js</strong></p>
 
 <p>
   <a href="https://www.npmjs.com/package/surilens"><img alt="npm version" src="https://img.shields.io/npm/v/surilens.svg?style=flat-square&color=blue" /></a>
-  <a href="https://nodejs.org"><img alt="node" src="https://img.shields.io/node/v/surilens.svg?style=flat-square&color=green" /></a>
+  <a href="https://nodejs.org"><img alt="node version" src="https://img.shields.io/node/v/surilens.svg?style=flat-square&color=green" /></a>
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/npm/l/surilens.svg?style=flat-square&color=orange" /></a>
-  <a href="https://www.npmjs.com/package/surilens"><img alt="downloads" src="https://img.shields.io/npm/dm/surilens.svg?style=flat-square&color=purple" /></a>
+  <a href="https://www.npmjs.com/package/surilens"><img alt="weekly downloads" src="https://img.shields.io/npm/dw/surilens.svg?style=flat-square&color=purple" /></a>
+  <img alt="frameworks" src="https://img.shields.io/badge/frameworks-Express%20%7C%20Fastify%20%7C%20NestJS%20%7C%20Koa%20%7C%20Hono-6366f1?style=flat-square" />
 </p>
 
-<p>
-  <strong>Express</strong> · <strong>Fastify</strong> · <strong>NestJS</strong> · <strong>Koa</strong> · <strong>Hono</strong>
-</p>
+```bash
+npm i surilens
+```
 
 <br/>
 
-<img src="docs/assets/dashboard.png" alt="SuriLens Dashboard" width="100%" style="border-radius: 8px;" />
+<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/dashboard.png" alt="SuriLens Hero Dashboard" width="100%" style="border-radius: 8px;" />
 
-<br/>
-<sub><em>Live execution graph showing a full Controller → MongoDB → JWT → Repository → Response pipeline</em></sub>
+<p><sub><em>Live execution graph showing complete request lifecycle through middleware, controllers, services, and databases.</em></sub></p>
 
 </div>
 
+---
+
+## 🔭 What is SuriLens?
+
+**SuriLens** is a zero-dependency, drop-in observability middleware for Node.js backends. It automatically captures every HTTP request, traces execution through your application layers (**Router → Middleware → Controller → Service → Database → Response**), and streams the data live to a real-time dark-mode dashboard — all in a single `npm install`.
+
+### Why use SuriLens?
+- **Instant Visual Clarity**: No more guessing what happens inside complex async routes or middleware chains.
+- **Zero Config & Local-First**: No external SaaS accounts, no heavy agents, no setup steps, and no extra dependencies beyond `ws`. Runs 100% locally.
+- **Interactive Time-Travel Debugging**: Step through captured requests using the built-in **Visual Replay Engine** to pinpoint bottlenecks and errors instantly.
+- **Built-in Data Privacy**: Automatic recursive security masking for passwords, tokens, cookies, and sensitive headers.
 
 ---
 
-## Introduction
-
-**SuriLens** is a drop-in observability middleware for Node.js backends. It automatically captures every HTTP request, traces execution through your application layers — Router → Middleware → Controller → Service → Database → Response — and streams the data in real-time to a beautiful dark-mode dashboard, all in a single `npm install`.
-
-No external dependencies beyond `ws`. No configuration files. No agents. No cloud accounts. Runs entirely locally.
-
----
-
-## Why SuriLens
+## 💡 Why SuriLens Over Alternatives?
 
 | Problem | SuriLens Solution |
 |---------|------------------|
-| "I don't know what happens inside my Express app" | Live execution graph shows every layer as it executes |
-| "I can't reproduce what happened on that failing request" | Visual Replay Engine — step through any captured request |
+| "I don't know what happens inside my Express app" | Live execution graph shows every layer as it executes in real-time |
+| "I can't reproduce what happened on that failing request" | Visual Replay Engine — step through any captured request step-by-step |
 | "My DB queries are slow but I don't know which ones" | Per-stage timing waterfall in the Timeline panel |
 | "I can't debug distributed microservice calls" | W3C Trace Context propagation with `traceparent` headers |
 | "Sensitive data leaks into logs" | Automatic security masking of passwords, tokens, cookies |
-| "My observability tool costs $$$" | SuriLens is open source and runs locally |
+| "My observability tool costs $$$ or needs cloud agents" | SuriLens is 100% open source, lightweight, and runs locally |
 
 ---
 

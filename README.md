@@ -1,7 +1,5 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/sonisuryansh/surilens/main/docs/assets/logo.png" alt="SuriLens Logo" width="75" />
-
 # ⚡ SuriLens
 
 **Enterprise-grade Real-Time Backend Observability Platform for Node.js**
